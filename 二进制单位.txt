@@ -1,0 +1,10 @@
+1 byte (B) = 8 bits
+1 word (W) = 4 bytes = 32 bits
+1 kilobyte (KB) = 1,024 bytes (10^3)
+1 megabyte (MB) = 1,024 kilobytes (10^6)
+1 gigabyte (GB) = 1,024 megabytes (10^9)
+1 terabyte (TB) = 1,024 gigabytes (10^12)
+1 petabyte (PB) = 1,024 terabytes (10^15)
+1 exabyte (EB) = 1,204 petabytes (10^18)
+1 zettabyte (ZB) = 1,024 exabytes (10^21)
+1 yottabyte (YB) = 1,024 zettabytes (10^24)

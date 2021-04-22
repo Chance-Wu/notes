@@ -1,0 +1,57 @@
+mybatis工作流程：
+
+<img src="https://tva1.sinaimg.cn/large/008eGmZEly1gouroviw45j30wu0u041a.jpg" style="zoom:100%">
+
+#### 1. sqlsession
+
+sqlsession是一次与数据库的会话。在你每次访问数据库时都需要创建它（当然并不是说在sqlsession里只能执行一次sql，可以执行多次，当一旦关闭了sqlsession就需要重新创建它）。sqlsession只能由`SqlSessionFactory`的`openSession方法`来完成创建。
+
+<img src="https://tva1.sinaimg.cn/large/008eGmZEly1gous0rjsrhj30zv0bmq40.jpg" style="zoom:100%">
+
+<img src="https://tva1.sinaimg.cn/large/008eGmZEly1gous1e0cyqj310l0fn75t.jpg" style="zoom:100%">
+
+<img src="https://tva1.sinaimg.cn/large/008eGmZEly1gous1vcpt0j30xd0exjsu.jpg" style="zoom:100%">
+
+#### 2. executor
+
+由源码可知，executor其实只是DefaultSqlSession的一个属性，而executor的每个操作都需要一个对象，那就是`MappedStatement`。
+
+<img src="https://tva1.sinaimg.cn/large/008eGmZEly1gous9fr12dj30uo0ic0u8.jpg" style="zoom:100%">
+
+#### 3. MappedStatement
+
+个人看来就是用来封装sql和返回结果的，熟悉的可以看到
+
+- id（个人猜想可能是mapper.xml中的那个id，即具体执行的是哪个sql）、
+- parameterMap（应该就是mapper.xml中的那个parameterMap，即sql中变量的类型）、
+- resultMaps（大概就是你需要的返回对象类型）
+
+<img src="https://tva1.sinaimg.cn/large/008eGmZEly1gousckf1y1j30mi0jl0u6.jpg" style="zoom:100%">
+
+#### 4. mybatis的分页
+
+##### 4.1 PageHelper插件
+
+1. PageHelper彻底实现了myabtis的物理分页
+2. 原理：就是在`StatementHandler`之前进行拦截，==对MappedStatement进行一系列的操作==（大致就是拼上分页sql）
+3. StatementHandler的默认实现类是RoutingStatementHandler，因此拦截的实际对象是它。==RoutingStatementHandler的主要功能是分发，这个类只是根据MappedStatement的配置，生成一个对应的StatementHandler(delegate)==，然后所有的实现都由delegate完成。
+4. PageHelper这个类之前是一个拦截器，但是我们可以看到现在使用的版本中它并为实现Interceptor，不知道是哪个版本之后，==拦截的任务就交给PageInterceptor这个类==，==PageHelper应该只是PageInterceptor的一个属性Dialect，而且Dialect的默认值就是PageHelper==。
+
+<img src="https://tva1.sinaimg.cn/large/008eGmZEly1gousnez7ctj30u408o74o.jpg" style="zoom:100%">
+
+<img src="https://tva1.sinaimg.cn/large/008eGmZEly1gouso1nt0vj311d0j1wfv.jpg" style="zoom:100%">
+
+##### 4.2 分页插件的使用
+
+```java
+//只要写了这一行就能就能将最近的一个list查询进行分页
+PageHelper.startPage(起始页码, 一页要显示多少条数据);
+List<ProductWithMonthBuy> list =  productDao.selectProductWithMonthBuytD(条件);
+PageInfo pageInfo = new PageInfo<>(list);
+//获取满足条件的总记录数
+pageInfo.getTotal();
+//获取总页数--总共应该被分为多少页
+int i = pageInfo.getPages();
+//获取返回记录数
+list.size();
+```
