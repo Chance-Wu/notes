@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-4relative [%thread] %-5level %logger{48} - %msg %n"/>
+    <property scope="context" name="APP_NAME" value="app"/>
+    <property scope="context" name="LOG_HOME" value="/Users/chance/Downloads/log"/>
+
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 按照每天生成日志文件 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>
+            ${LOG_HOME}/${APP_NAME}.log
+        </file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>
+                ${LOG_HOME}/${APP_NAME}/${APP_NAME}.%i.log.%d{yyyy-MM-dd}.zip
+            </FileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <!--日志文件保留天数-->
+            <maxHistory>15</maxHistory>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.chance.logger" level="INFO" additivity="false">
+        <appender-ref ref="Console"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+    <logger name="org.springframework" level="INFO" additivity="false">
+        <appender-ref ref="Console"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+    <logger name="org.mybatis" level="INFO" additivity="false">
+        <appender-ref ref="Console"/>
+    </logger>
+
+    <!--设置框架日志打印级别-->
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="Console"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>
