@@ -1,0 +1,9 @@
+1.下载地址：https://github.com/medcl/elasticsearch-analysis-ik/releases
+
+2.解压到安装目录的plugin目录：
+mkdir ik
+cd ik/
+cp elasticsearch-analysis-ik-7.10.0.zip /Users/chance/executable/elasticsearch/elasticsearch-single/plugins/ik
+
+3.重启
+./bin/elasticsearch

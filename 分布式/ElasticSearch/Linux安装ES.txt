@@ -1,0 +1,59 @@
+# 创建elsearch用户，ES不支持root用户运行
+useradd elsearch
+
+# 创建目录/itcast/es
+mkdir itcast
+cd itcast
+mkdir es
+
+# 更改新建目录所属
+chown elasticsearch:elsearch /itcast -R
+
+# 切换用户
+su - elsearch
+
+# 上传安装包
+
+# 解压安装包
+tar -xvf elasticsearch-7.10.0.tar.gz -C /itcat/es/
+
+# 修改配置文件elasticsearch.yml
+vim config/elasticsearch.yml
+network.host: 0.0.0.0   # 设置ip地址，任意网络访问
+# 说明：在Elasticsearch中如果，network.host不是localhost或者127.0.0.1的话，就会对环境的要求比较高，我们的测试环境不一定能够满足，一般情况下需要修改两处配置，如下
+
+# 修改jvm启动参数
+vim config/jvm.options
+-Xms128m
+-Xmx128m
+
+# 一个进程在VMAs（虚拟内存区域）创建内存映射最大数量
+vim /etc/sysctl.conf
+vm.max_map_count=655360
+
+sysctl -p # 配置生效
+
+# 启动ES服务
+su - elsearch
+./bin/elasticsearch或者./bin/elasticsearch -d #后台系统
+
+# 文件数报错解决
+vim /etc/security/limits.conf
+sof nofile 65536
+hard nofile 131072
+soft nproc 2048
+hard nproc 4096
+
+# 进程的线程数报错
+vim /etc/security/limits.d/90-nproc.conf
+soft nproc 1024 修改为 soft nproc 4096
+
+# 启动ES服务
+su - elsearch
+./bin/elasticsearch
+
+# jps查看进程
+jps
+# 杀掉进程
+kill pid
+
