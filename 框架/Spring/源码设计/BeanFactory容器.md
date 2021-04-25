@@ -1,8 +1,6 @@
-> BeanFactory本质上是一个bean工厂或者说bean容器，按照我们的要求生产需要的bean，提供给我们使用。只是在生产bean的过程中，需要解决bean之间的依赖问题，才引入依赖注入这种技术。即==依赖注入是beanFactory生产bean时为了解决bean之间的依赖的一种技术而已==。
+> BeanFactory本质上是一个bean工厂或者说bean容器，按照要求生产需要的bean，提供给我们使用。只是在生产bean的过程中，需要解决bean之间的依赖问题，才引入依赖注入这种技术。即==依赖注入是beanFactory生产bean时为了解决bean之间的依赖的一种技术而已==。
 >
 > ==beanFactory会在bean的生命周期的各个阶段中对bean进行各种管理，并且spring将这些阶段通过各种借口暴露给我们==，让我们可以对bean进行各种处理，只要让bean实现对应的接口，那么spring就会在bean的生命周期调用我们实现的接口来处理该bean。
->
-> bean容器的启动——bean在实例化之前，必须是在bean容器启动之后，所有有两个阶段：
 >
 > 1. bean容器的启动阶段；
 > 2. 容器中bean的实例化阶段。
@@ -25,42 +23,31 @@ BeanFactory就是生成Bean的工厂：
  */
 public interface BeanFactory {
 
+  // 用于取消引用FactoryBean实例，并将其与FactoryBean创建的bean区分开来。
+  // 例如，如果名为myJndiObject的bean是FactoryBean，则获取＆myJndiObject将返回工厂，而不是工厂返回的实例。
   String FACTORY_BEAN_PREFIX = "&";
 
   Object getBean(String name) throws BeansException;
 
   <T> T getBean(String name, Class<T> requiredType) throws BeansException;
-
-  Object getBean(String name, Object... args) throws BeansException;
-
-  <T> T getBean(Class<T> requiredType) throws BeansException;
-
-  <T> T getBean(Class<T> requiredType, Object... args) throws BeansException;
-
-  <T> ObjectProvider<T> getBeanProvider(Class<T> requiredType);
-
-  <T> ObjectProvider<T> getBeanProvider(ResolvableType requiredType);
-
-  boolean containsBean(String name);
-
-  boolean isSingleton(String name) throws NoSuchBeanDefinitionException;
-
-  boolean isPrototype(String name) throws NoSuchBeanDefinitionException;
-
-  boolean isTypeMatch(String name, ResolvableType typeToMatch) throws NoSuchBeanDefinitionException;
-
-  boolean isTypeMatch(String name, Class<?> typeToMatch) throws NoSuchBeanDefinitionException;
-
-  @Nullable
-  Class<?> getType(String name) throws NoSuchBeanDefinitionException;
-
-  @Nullable
-  Class<?> getType(String name, boolean allowFactoryBeanInit) throws NoSuchBeanDefinitionException;
-
-  String[] getAliases(String name);
-
+  
+  // 省略
 }
 ```
+
+>Bean工厂实现应尽可能支持标准bean生命周期接口。 完整的初始化方法及其标准顺序是：
+>
+> * `BeanNameAware`.setBeanName()
+> * `BeanClassLoaderAware`.setBeanClassLoader()
+> * `BeanFactoryAware`.setBeanFactory()
+> * `EnvironmentAware`.setEnvironment()
+> * `EmbeddedValueResolverAware`.setEmbeddedValueResolver()
+> * `ResourceLoaderAware`.setResourceLoader()  仅适用于在应用程序上下文中运行时
+> * `ApplicationEventPublisherAware`.setApplicationEventPublisher() 仅适用于在应用程序上下文中运行时
+> * `MessageSourceAware`.setMessageSource() 仅适用于在应用程序上下文中运行时
+> * `ApplicationContextAware`.setApplicationContext() 仅适用于在应用程序上下文中运行时
+> * `ServletContextAware`.setServletContext() 仅适用于在应用程序上下文中运行时
+> * `BeanPostProcessors`.postProcessBeforeInitialization()和InitializingBean.afterPropertiesSet() 自定义初始化方法定义
 
 
 
@@ -75,60 +62,4 @@ spring容器接管了bean的实例化，通过依赖注入达到了松耦合的�
 - `BeanPostProcessor接口`
 - `InitializingBean接口`（@PostConstruct，init-method）
 - `DisposableBean接口`（@PreDestory，destory-method）
-
-
-
-
-
-#### FactoryBean接口
-
----
-
-实现了FactoryBean接口的bean是一类叫做factory的bean。==spring会在使用getBean()调用获得该bean时，会自动调用该bean的getObject()方法==，所以返回的不是factory这个bean，而是bean.getObject()方法的返回值：
-
-```java
-public interface FactoryBean<T> {
-
-  String OBJECT_TYPE_ATTRIBUTE = "factoryBeanObjectType";
-
-  @Nullable
-  T getObject() throws Exception;
-
-  @Nullable
-  Class<?> getObjectType();
-
-  default boolean isSingleton() {
-    return true;
-  }
-
-}
-```
-
-> 例子：spring与mybatis的结合
->
-> ```xml
-> <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
->   <property name="dataSource" ref="dataSource" />
->   <property name="configLocation" value="classpath:config/mybatis-config-master.xml" />
->   <property name="mapperLocations" value="classpath*:config/mappers/master/**/*.xml" />
-> </bean>
-> ```
->
-> SqlSessionFactoryBean实现了FactoryBean接口，所以返回的不是SqlSessionFactoryBean的实例，而是它的SqlSessionFactoryBean.getObject()的返回值。
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
