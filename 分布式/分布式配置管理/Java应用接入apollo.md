@@ -5,96 +5,97 @@
 
 2、必选设置
 --
-Apollo客户端依赖于`AppId`，`Apollo Meta Server等环境信息`来工作，确保以下的说明并且正确配置：
+Apollo客户端依赖于AppId，Apollo Meta Server等环境信息来工作。
 
-> AppId（应用的身份信息，是从服务端获取配置的一个重要信息），有以下几种设置方式，按照优先级从高到低：
-```text
-1）System Property
-Apollo 0.7.0+支持通过System Property传入app.id信息，如
--Dapp.id=YOUR-APP-ID
+#### 2.1 AppId
 
-2）操作系统的System Environment
-Apollo 14.0+支持通过操作系统的System Environment APP_ID来传入app.id信息，如：
-APP_ID=YOUR-APP-ID
+---
 
-3）Spring Boot application.properties(该配置方式不适用于多个war包部署在同一个tomcat的使用场景)
-Apollo 1.0.0+支持通过Spring Boot的application.properties文件配置，如：
-app.id=YOUR-APP-ID
+AppId（应用的身份信息，是从服务端获取配置的一个重要信息），有以下几种设置方式，按照优先级从高到低：
 
-4）app.properties
-确保classpath:/META-INF/app.properties文件存在，并且其中内容形如：
+> 1. System Property
+> Apollo 0.7.0+支持通过System Property传入app.id信息，如
+> -Dapp.id=YOUR-APP-ID
+>
+> 2. 操作系统的System Environment
+> Apollo 14.0+支持通过操作系统的System Environment APP_ID来传入app.id信息，如：
+> APP_ID=YOUR-APP-ID
+>
+> 3. Spring Boot application.properties(该配置方式不适用于多个war包部署在同一个tomcat的使用场景)
+> Apollo 1.0.0+支持通过Spring Boot的application.properties文件配置，如：
+> app.id=YOUR-APP-ID
+>
+> 4. ==app.properties==
+>     ==确保classpath:/META-INF/app.properties文件存在==，内容形如：app.id=YOUR-APP-ID，app.id是用来标识应用身份的唯一id，格式为string。
 
-app.id=YOUR-APP-ID
-文件位置参考如下：
 
-app.id是用来标识应用身份的唯一id，格式为string。
-```
+#### 2.2 Meta Server
 
-> Apollo Meta Server
+---
 
-Apollo支持应用在不同的环境有不同的配置，所以需要在运行提供给Apollo客户端当前环境的`Apollo Meta Server`信息。
+Apollo Meta Server，Apollo支持应用在不同的环境有不同的配置，所以需要在运行提供给Apollo客户端当前环境的Apollo Meta Server信息。
 默认情况下，meta server和config service是部署在同一个JVM进程，所以meta server的地址就是config service的地址。
 
-为了实现meta server的高可用，推荐通过SLB（Software Load Balancer）做动态负载均衡。Meta server地址也可以填入IP，如http://1.1.1.1:8080,http://2.2.2.2:8080，不过生产环境还是建议使用域名（走slb），因为机器扩容、缩容等都可能导致IP列表的变化。
-
-1.0.0版本开始支持以下方式配置apollo meta server信息，按照优先级从高到低分别为：
-```text
-1）通过Java System Property apollo.meta来指定
-    * 在Java程序启动脚本中，可以指定-Dapollo.meta=http://config-service-url
-        如果是运行jar文件，需要注意格式是java -Dapollo.meta=http://config-service-url -jar xxx.jar
-    * 也可以通过程序指定，如System.setProperty("apollo.meta", "http://config-service-url");
-
-2）通过Spring Boot的配置文件（该配置方式不适用于多个war包部署在同一个tomcat的使用场景）
-    * 可以在Spring Boot的application.properties或bootstrap.properties中指定apollo.meta=http://config-service-url
-
-3）通过操作系统的System EnvironmentAPOLLO_META
-    * 可以通过操作系统的System Environment APOLLO_META来指定
-    * 注意key为全大写，且中间是_分隔
-
-4）通过server.properties配置文件
-    * 可以在server.properties配置文件中指定apollo.meta=http://config-service-url
-    * 对于Mac/Linux，文件位置为/opt/settings/server.properties
-    * 对于Windows，文件位置为C:\opt\settings\server.properties
-
-5）通过app.properties配置文件
-    * 可以在classpath:/META-INF/app.properties指定apollo.meta=http://config-service-url
-
-6）通过Java system property ${env}_meta
-    * 如果当前env是dev，那么用户可以配置-Ddev_meta=http://config-service-url
-    * 使用该配置方式，那么就必须要正确配置Environment，详见1.2.4.1 Environment
-
-7）通过操作系统的System Environment ${ENV}_META (1.2.0版本开始支持)
-    * 如果当前env是dev，那么用户可以配置操作系统的System Environment DEV_META=http://config-service-url
-    * 注意key为全大写
-    * 使用该配置方式，那么就必须要正确配置Environment，详见1.2.4.1 Environment
-
-8）通过apollo-env.properties文件
-    * 用户也可以创建一个apollo-env.properties，放在程序的classpath下，或者放在spring boot应用的config目录下
-    * 使用该配置方式，那么就必须要正确配置Environment，详见1.2.4.1 Environment
-    * 文件内容形如：
-    dev.meta=http://1.1.1.1:8080
-    fat.meta=http://apollo.fat.xxx.com
-    uat.meta=http://apollo.uat.xxx.com
-    pro.meta=http://apollo.xxx.com
-
-如果通过以上各种手段都无法获取到Meta Server地址，Apollo最终会fallback到http://apollo.meta作为Meta Server地址
-```
+> 为了实现meta server的高可用，推荐通过SLB（Software Load Balancer）做动态负载均衡。Meta server地址也可以填入IP，如http://1.1.1.1:8080,http://2.2.2.2:8080，不过生产环境还是建议使用域名（走slb），因为机器扩容、缩容等都可能导致IP列表的变化。
+>
+> 1.0.0版本开始支持以下方式配置apollo meta server信息，按照优先级从高到低分别为：
+>
+> 1. 通过Java System Property apollo.meta来指定
+>    - 在Java程序启动脚本中，可以指定-Dapollo.meta=http://config-service-url
+>      如果是运行jar文件，需要注意格式是java -Dapollo.meta=http://config-service-url -jar xxx.jar
+>    - 也可以通过程序指定，如System.setProperty("apollo.meta", "http://config-service-url");
+>
+> 2. 通过Spring Boot的配置文件（该配置方式不适用于多个war包部署在同一个tomcat的使用场景）
+>    - 可以在Spring Boot的application.properties或bootstrap.properties中指定apollo.meta=http://config-service-url
+>
+> 3. 通过操作系统的System EnvironmentAPOLLO_META
+>     * 可以通过操作系统的System Environment APOLLO_META来指定
+>     * 注意key为全大写，且中间是_分隔
+>
+> 4. 通过==server.properties==配置文件
+>    - 可以在server.properties配置文件中指定apollo.meta=http://config-service-url
+>    - 对于Mac/Linux，文件位置为/opt/settings/server.properties
+>    - 对于Windows，文件位置为C:\opt\settings\server.properties
+>
+> 5. 通过==app.properties==配置文件
+>     * 可以在classpath:/META-INF/app.properties指定apollo.meta=http://config-service-url
+>
+> 6. 通过Java system property ${env}_meta
+>     * 如果当前env是dev，那么用户可以配置-Ddev_meta=http://config-service-url
+>     * 使用该配置方式，那么就必须要正确配置Environment，详见1.2.4.1 Environment
+>
+> 7. 通过操作系统的System Environment ${ENV}_META (1.2.0版本开始支持)
+>     * 如果当前env是dev，那么用户可以配置操作系统的System Environment DEV_META=http://config-service-url
+>     * 注意key为全大写
+>     * 使用该配置方式，那么就必须要正确配置Environment，详见1.2.4.1 Environment
+>
+> 8. 通过apollo-env.properties文件
+>     * 用户也可以创建一个apollo-env.properties，放在程序的classpath下，或者放在spring boot应用的config目录下
+>     * 使用该配置方式，那么就必须要正确配置Environment，详见1.2.4.1 Environment
+>     * 文件内容形如：
+>     dev.meta=http://1.1.1.1:8080
+>     fat.meta=http://apollo.fat.xxx.com
+>     uat.meta=http://apollo.uat.xxx.com
+>     pro.meta=http://apollo.xxx.com
+>
+> 如果通过以上各种手段都无法获取到Meta Server地址，Apollo最终会fallback到http://apollo.meta作为Meta Server地址
 
 `自定义Apollo Meta Server地址定位逻辑`
 
 `跳过Apollo Meta Server服务发现`
 
-> 本地缓存路径
-
-Apollo客户端会把从服务端获取到的配置在本地文件系统缓存一份，用于在遇到服务不可用，或网络不通的时候，依然能从本地恢复配置，不影响应用正常运行。
-
-本地缓存路径默认位于以下路径，所以请确保`/opt/data`或`C:\opt\data\`目录存在，且应拥有读写权限。
-* Mac/Linux: /opt/data/{appId}/config-cache
-* Windows: C:\opt\data\{appId}\config-cache
+> **本地缓存路径**
+>
+> ==Apollo客户端会把从服务端获取到的配置在本地文件系统缓存一份==，用于在遇到服务不可用，或网络不通的时候，依然能从本地恢复配置，不影响应用正常运行。
+>
+> 本地缓存路径默认位于以下路径，所以请确保`/opt/data`或`C:\opt\data\`目录存在，且应拥有读写权限。
+>
+> - Mac/Linux: /opt/data/{appId}/config-cacheWindows: C:\opt\data\{appId}\config-cache
 
 本地配置文件会以下面的文件名格式放置于本地缓存路径下：
 
 `{appId}+{cluster}+{namespace}.properties`
+
 * appId就是应用自己的appId，如100004458
 * cluster就是应用使用的集群，一般在本地模式下没有做过配置的话，就是default
 * namespace就是应用使用的配置namespace，一般是application 
@@ -104,12 +105,6 @@ Apollo客户端会把从服务端获取到的配置在本地文件系统缓存�
 3、可选设置
 --
 >Environment，Environment可以通过以下3种方式的任意一个配置：
-```text             
-1）通过Java System Property
-    * 可以通过Java的System Property env来指定环境
-    * 在Java程序启动脚本中，可以指定-Denv=YOUR-ENVIRONMENT
-    * 如果是运行jar文件，需要注意格式是java -Denv=YOUR-ENVIRONMENT -jar xxx.jar
-        注意key为全小写
 
 2）通过操作系统的System Environment
     * 还可以通过操作系统的System Environment ENV来指定
@@ -119,15 +114,16 @@ Apollo客户端会把从服务端获取到的配置在本地文件系统缓存�
     * 最后一个推荐的方式是通过配置文件来指定env=YOUR-ENVIRONMENT
     * 对于Mac/Linux，文件位置为/opt/settings/server.properties
     * 对于Windows，文件位置为C:\opt\settings\server.properties
- 
+
  文件内容形如：
  env=DEV
- 
+
  目前，env支持以下几个值（大小写不敏感）：
  * DEV（Development environment）
  * FAT（Feature Acceptance Test environment）
  * UAT（User Acceptance Test environment）
  * PRO（Production environment）
+
 ```            
 
 > Cluster（Apollo支持配置按照集群划分，也就是说对于一个appId和一个环境，对不同的集群可以有不同的配置。）
@@ -157,6 +153,7 @@ provider和consumer的pom中引入以下依赖：
     * Spring boot的@ConfigurationProperties方式
     * 从v0.10.0开始的版本支持placeholder在运行时自动更新。
     * Spring方式也可以结合API方式使用，如注入Apollo的Config对象，就可以照常通过API方式获取配置了：
+
 ```text
 @ApolloConfig
 private Config config; //inject config for namespace application
@@ -167,6 +164,7 @@ private Config config; //inject config for namespace application
 API方式不依赖Spring框架即可使用。
 
 `默认的namespace配置获取`
+
 ```text
 // config实例对于每个名称空间都是单例，并且永远不会为null
 Config config = ConfigService.getAppConfig();
@@ -340,7 +338,7 @@ public class AppConfig {
 ```
 
 > ConfigurationProperties使用方式
-  
+
 Spring Boot提供了@ConfigurationProperties把配置注入到bean对象中。Apollo也支持这种方式，下面的例子会把redis.cache.expireSeconds和redis.cache.commandTimeout分别注入到SampleRedisConfig的expireSeconds和commandTimeout字段中。
 ```java
 @ConfigurationProperties(prefix = "redis.cache")
@@ -356,7 +354,7 @@ public class SampleRedisConfig {
     this.commandTimeout = commandTimeout;
   }
 }
-``` 
+```
 
 在Configuration类中按照下面的方式使用（假设应用默认的application namespace中有redis.cache.expireSeconds和redis.cache.commandTimeout的配置项）：
 ```java

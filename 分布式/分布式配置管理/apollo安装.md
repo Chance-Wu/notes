@@ -16,11 +16,10 @@ Apollo的表结构对timestamp使用了多个default声明，所以需要5.6.5�
 在本地解压apollo-quick-start.zip
 
 修改后重新打包的步骤：
-```text
-1.修改apollo-configservice, apollo-adminservice和apollo-portal的pom.xml，注释掉spring-boot-maven-plugin和maven-assembly-plugin
-2.在根目录下执行mvn clean package -pl apollo-assembly -am -DskipTests=true
-3.复制apollo-assembly/target下的jar包，rename为apollo-all-in-one.jar
-```
+
+>1. 修改apollo-configservice, apollo-adminservice和apollo-portal的pom.xml，注释掉spring-boot-maven-plugin和maven-assembly-plugin
+>2. 在根目录下执行mvn clean package -pl apollo-assembly -am -DskipTests=true
+>3. 复制apollo-assembly/target下的jar包，rename为apollo-all-in-one.jar
 
 3、创建数据库
 --
@@ -29,7 +28,7 @@ Apollo服务端共需要两个数据库：
 
 4、配置数据库连接信息
 --
-Apollo服务端需要知道如何连接到你前面创建的数据库，编辑demo.sh，修改ApolloPortalDB和ApolloConfigDB相关的数据库连接串信息。
+Apollo服务端需要知道如何连接到你前面创建的数据库，编辑demo.sh，修改==ApolloPortalDB==和==ApolloConfigDB==相关的数据库连接串信息。
 
 ```properties
 #apollo config db info
