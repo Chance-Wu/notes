@@ -617,7 +617,7 @@
 
 
 
-#### 11. Servlet规范扩展——监听接口
+#### 11. Servlet规范扩展——Listener接口
 
 ---
 
@@ -661,93 +661,50 @@
 
 
 
+#### 12. Servlet规范扩展——Filter接口
 
+---
 
+1. 来自于Servlet规范下接口，在Tomcat中存在于servlet-api.jar包；
+2. Filter接口实现类由开发人员负责提供，Http服务器不负责提供；
+3. Filter接口在Http服务器调用资源文件之前，对Http服务器进行拦截。
 
+>作用：
+>
+>1. 拦截Http服务器，帮助Http服务器检测当前请求合法性；
+>2. 拦截Http服务器，对当前请求进行增强操作。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+>Filter接口实现类开发步骤：
+>
+>1. 创建一个Java类实现Filter接口；
+>2. 重写Filter接口中doFilter方法；
+>3. web.xml将过滤器接口实现类注册到Http服务器。
+>
+>```java
+>@Component
+>@WebFilter(urlPatterns = "/*", filterName = "oneFilter")
+>public class OneFilter implements Filter {
+>
+>  @Override
+>  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+>    //1.通过拦截请求对象得到请求包参数信息,从而得到来访用户的真实年龄
+>    String age=servletRequest.getParameter("age");
+>    ///2.根据年龄,帮助Http服务器判断本次请求的合法性
+>    if (Integer.valueOf(age)<70){
+>      //合法请求
+>      filterChain.doFilter(servletRequest,servletResponse);
+>    }else{
+>      //过滤器代替服务器拒绝本次请求
+>      servletResponse.setContentType("text/html; charset=utf-8");
+>      PrintWriter out=servletResponse.getWriter();
+>      out.print("<center><font style='color:red;font-size:40px'>大爷,请珍爱生命!!</font></center>");
+>    }
+>  }
+>}
+>```
+>
+>要求Tomcat在调用网站中任意文件时，来调用OneFilter拦截。
 
 - 在servlet的规范当中，servlet容器或者叫web容器，如tomcat，中运行的每个应用都由一个ServletContext表示，在web容器中可以包含多个ServletContext，即可以有多个web应用在web容器中运行。如在tomcat的webapp目录下，每个war包都对应一个web应用，tomcat启动时会解压war包，并启动相关的应用。
 - 在web容器启动的时候，会初始化web应用，即创建ServletContext对象，加载解析web.xml文件，获取该应用的Filters，Listener，Servlet等组件的配置并创建对象实例，作为ServletContext的属性，保存在ServletContext当中。之后web容器接收到客户端请求时，则会根据请求信息，匹配到处理这个请求的Servlet，同时在交给servlet处理之前，会先使用应用配置的Filters对这个请求先进行过滤，最后才交给servlet处理。
 - 了解web容器启动，之后接受客户端请求这些知识有啥用处呢？这里我们需要回过头来看我们的spring项目。我们在日常开发中，直接接触的是spring相关的组件，然后打成war包，放到web容器中，如拷贝到tomcat的webapp目录，并不会直接和web容器打交道。经过以上的分析，其实一个spring项目就是对应web容器里的一个ServletContext，所以在ServletContext对象的创建和初始化的时候，就需要一种机制来触发spring相关组件的创建和初始化，如包含@Controller和@RequestMapping注解的类和方法，这样才能处理请求。
-
-
-
-会员生日事件、生日发券发生异常、会员升降级事件营销、会员升降级发券、会员首次完善资料事件营销、注册发券
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
