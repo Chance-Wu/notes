@@ -255,9 +255,9 @@ Dubbo提供三个核心功能：==基于接口的远程调用==、==容错和负
 >   dataDir=/usr/local/zkCluster/zookeeper-1/data
 >   # log目录, 同样可以是任意目录. 如果没有设置该参数, 将使用和#dataDir相同的设置.
 >   dataLogDir=/usr/local/zkCluster/zookeeper-1/logs
->       
+>         
 >   clientPort=2181
->       
+>         
 >   # 集群的zookeeper应用，格式：serve.n=ip:集群通信端口:集群选举端口
 >   server.1=127.0.0.1:2887:3887
 >   server.2=127.0.0.1:2888:3888
@@ -268,9 +268,9 @@ Dubbo提供三个核心功能：==基于接口的远程调用==、==容错和负
 >   # zk-2
 >   dataDir=/usr/local/zkCluster/zookeeper-2/data
 >   dataLogDir=/usr/local/zkCluster/zookeeper-2/logs
->       
+>         
 >   clientPort=2182
->       
+>         
 >   # 集群的zookeeper应用，格式：serve.n=ip:集群通信端口:集群选举端口
 >   server.1=127.0.0.1:2887:3887
 >   server.2=127.0.0.1:2888:3888
@@ -281,9 +281,9 @@ Dubbo提供三个核心功能：==基于接口的远程调用==、==容错和负
 >   # zk-3
 >   dataDir=/usr/local/zkCluster/zookeeper-3/data
 >   dataLogDir=/usr/local/zkCluster/zookeeper-3/logs
->       
+>         
 >   clientPort=2183
->       
+>         
 >   # 集群的zookeeper应用，格式：serve.n=ip:集群通信端口:集群选举端口
 >   server.1=127.0.0.1:2887:3887
 >   server.2=127.0.0.1:2888:3888
@@ -309,24 +309,14 @@ Dubbo提供三个核心功能：==基于接口的远程调用==、==容错和负
     </dependency>
     <!-- zk 注册中心客户端引入 curator客户端 -->
     <dependency>
-      <groupId>org.apache.dubbo</groupId>
-      <artifactId>dubbo-dependencies-zookeeper</artifactId>
-      <version>${dubbo.version}</version>
-      <exclusions>
-        <!-- 为了解决日志冲突，需要剔除日志依赖 -->
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-framework</artifactId>
+      <version>${curator.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.curator</groupId>
+      <artifactId>curator-recipes</artifactId>
+      <version>${curator.version}</version>
     </dependency>
   </dependencies>
 </dependencyManagement>
@@ -399,5 +389,4 @@ java -jar dubbo-admin-0.3.0.jar --server.port=8081
 服务查询：
 
 ![](https://tva1.sinaimg.cn/large/008i3skNgy1gtm1wb0e2lj61ia0te0un02.jpg)
-
 
