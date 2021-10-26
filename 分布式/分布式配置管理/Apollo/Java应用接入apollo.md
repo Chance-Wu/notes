@@ -144,24 +144,22 @@ provider和consumer的pom中引入以下依赖：
 5、客户单用法（支持API方式和Spring整合方式）
 --
 
-* API方式灵活，功能完备，配置值实时更新（热发布），支持所有Java环境。
+* API方式灵活，配置值实时更新，支持所有Java环境。
 * Spring方式接入简单，结合Spring有N种酷炫的玩法，如
-    * `Placeholder方式`：
+    * ==Placeholder方式==：
         * 代码中直接使用，`@Value("${someKeyFromApollo:someDefaultValue}")`
         * 配置文件中使用替换placeholder，`spring.datasource.url: ${someKeyFromApollo:someDefaultValue}`
         * 直接托管spring的配置，`在apollo中直接配置spring.datasource.url=jdbc:mysql://localhost:3306/somedb?characterEncoding=utf8`
     * Spring boot的@ConfigurationProperties方式
-    * 从v0.10.0开始的版本支持placeholder在运行时自动更新。
+    * 从v0.10.0开始的版本支持placeholder在运行时自动更新。 
     * Spring方式也可以结合API方式使用，如注入Apollo的Config对象，就可以照常通过API方式获取配置了：
 
 ```text
 @ApolloConfig
-private Config config; //inject config for namespace application
+private Config config;
 ```
 
-> API使用方式
-
-API方式不依赖Spring框架即可使用。
+> API使用方式（API方式不依赖Spring框架即可使用）
 
 `默认的namespace配置获取`
 
@@ -216,8 +214,9 @@ String content = configFile.getContent();
 ```
 
 > 基于Java配置
+>
+> 注意==@EnableApolloConfig要和@Configuration一起使用==，不然不会生效。
 
-注意@EnableApolloConfig要和@Configuration一起使用，不然不会生效。
 ```text
 1.注入默认namespace的配置到Spring中
 //这个是最简单的配置形式，一般应用用这种形式就可以了，用来指示Apollo注入application namespace的配置到Spring环境中
@@ -286,7 +285,7 @@ apollo.bootstrap.eagerLoad.enabled=true
 
 7、Spring Placeholder的使用
 --
-Spring应用通常会使用Placeholder来注入配置，使用的格式形如`${someKey:someDefaultValue}`，如`${timeout:100}`。冒号前面的是key，冒号后面的是默认值。
+Spring应用通常会使用Placeholder来注入配置，使用的格式形如`${someKey:someDefaultValue}`，如`${timeout:100}`。
 
 `建议在实际使用时尽量给出默认值`，以免由于key没有定义导致运行时错误。
 
@@ -303,7 +302,7 @@ apollo.autoUpdateInjectedSpringProperties=false
 
 > Java Config使用方式
 
-假设我有一个TestJavaConfigBean，通过Java Config的方式还可以使用@Value的方式注入：
+假设有一个TestJavaConfigBean，通过Java Config的方式还可以使用@Value的方式注入：
 ```java
 public class TestJavaConfigBean {
   @Value("${timeout:100}")
