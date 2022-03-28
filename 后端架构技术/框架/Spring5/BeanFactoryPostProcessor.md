@@ -1,0 +1,4 @@
+使用注解注入容器的类的解析时机就发生在`BeanFactoryPostProcessor`。
+
+ConfigurationClassPostProcessor
+
