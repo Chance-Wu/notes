@@ -1,4 +1,4 @@
-#### 1. jps（）
+#### 1. jps
 
 > 是jdk提供的一个==查看当前java进程==的小工具，可以看作是JavaVirtual Machine Process Status Tool的缩写。
 >
