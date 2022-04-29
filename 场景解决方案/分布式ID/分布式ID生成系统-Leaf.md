@@ -27,7 +27,7 @@ https://github.com/Meituan-Dianping/Leaf/blob/master/README_CN.md
 
 
 
-#### 1. UUID方案
+### 1. UUID方案
 
 ---
 
@@ -47,7 +47,7 @@ UUID(Universally Unique Identifier)的标准型式包含**32个16进制数字，
 
 
 
-#### 2. 类snowflake方案
+### 2. 类snowflake方案
 
 ---
 
@@ -73,7 +73,7 @@ UUID(Universally Unique Identifier)的标准型式包含**32个16进制数字，
 
 
 
-#### 3. 数据库生成
+### 3. 数据库生成
 
 ---
 
@@ -127,13 +127,13 @@ auto-increment-offset = 2
 
 
 
-#### 4. Leaf方案实现
+### 4. Leaf方案实现
 
 ---
 
 综合对比上述几种方案，每种方案都不完全符合我们的要求。所以Leaf分别在上述第二种和第三种方案上做了相应的优化，实现了Leaf-segment和Leaf-snowflake方案。
 
-##### 4.1 Leaf-segment数据库方案
+#### 4.1 Leaf-segment数据库方案
 
 在使用数据库的方案上，做了如下改变： - 原方案每次获取ID都得读写一次数据库，造成数据库压力大。改为利用proxy server批量获取，每次获取一个segment(step决定大小)号段的值。用完之后再去数据库获取新的号段，可以大大的减轻数据库的压力。 - 各个业务不同的发号需求用biz_tag字段来区分，每个biz-tag的ID获取相互隔离，互不影响。如果以后有性能需求需要对数据库扩容，不需要上述描述的复杂的扩容操作，只需要对biz_tag分库分表就行。
 
@@ -191,23 +191,89 @@ Commit
 - TP999数据波动大，当号段使用完之后还是会hang在更新数据库的I/O上，tg999数据会出现偶尔的尖刺。
 - DB宕机会造成整个系统不可用。
 
+##### 4.1.1 双buffer优化
+
+对于第二个缺点，Leaf-segment做了一些优化，简单的说就是：
+
+Leaf 取号段的时机是在号段消耗完的时候进行的，也就意味着号段临界点的ID下发时间取决于下一次从DB取回号段的时间，并且在这期间进来的请求也会因为DB号段没有取回来，导致线程阻塞。如果请求DB的网络和DB的性能稳定，这种情况对系统的影响是不大的，但是假如取DB的时候网络发生抖动，或者DB发生慢查询就会导致整个系统的响应时间变慢。
+
+为此，我们希望DB取号段的过程能够做到无阻塞，不需要在DB取号段的时候阻塞请求线程，即==当号段消费到某个点时就异步的把下一个号段加载到内存中。而不需要等到号段用尽的时候才去更新号段。这样做就可以很大程度上的降低系统的TP999指标==。详细实现如下图所示：
+
+<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/f2625fac.png" alt="image" style="zoom:80%;" />
+
+采用双buffer的方式，Leaf服务内部有两个号段缓存区segment。当前号段已下发10%时，如果下一个号段未更新，则另启一个更新线程去更新下一个号段。当前号段全部下发完后，如果下个号段准备好了则切换到下个号段为当前segment接着下发，循环往复。
+
+- 每个biz-tag都有消费速度监控，通常推荐segment长度设置为服务高峰期发号QPS的600倍（10分钟），这样即使DB宕机，Leaf仍能持续发号10-20分钟不受影响。
+- 每次请求来临时都会判断下个号段的状态，从而更新此号段，所以偶尔的网络抖动不会影响下个号段的更新。
+
+##### 4.1.2 Leaf高可用容灾
+
+对于第三点“DB可用性”问题，目前采用**一主两从**的方式，同时**分机房部署**，Master和Slave之间采用**半同步方式**同步数据。同时使用公司Atlas数据库中间件(已开源，改名为[DBProxy](http://tech.meituan.com/dbproxy-introduction.html))做主从切换。当然这种方案在一些情况会退化成异步模式，甚至在**非常极端**情况下仍然会造成数据不一致的情况，但是出现的概率非常小。如果你的系统要保证100%的数据强一致，可以选择使用“类Paxos算法”实现的强一致MySQL方案，如MySQL 5.7前段时间刚刚GA的[MySQL Group Replication](https://dev.mysql.com/doc/refman/5.7/en/group-replication.html)。但是运维成本和精力都会相应的增加，根据实际情况选型即可。
+
+<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/0de883dd.png" alt="image" style="zoom:80%;" />
+
+同时Leaf服务分IDC部署，内部的服务化框架是“MTthrift RPC”。服务调用的时候，根据负载均衡算法会优先调用同机房的Leaf服务。在该IDC内Leaf服务不可用的时候才会选择其他机房的Leaf服务。同时服务治理平台OCTO还提供了针对服务的过载保护、一键截流、动态流量分配等对服务的保护措施。
+
+#### 4.2 Leaf-snowflake方案
+
+Leaf-segment方案可以生成趋势递增的ID，同时ID号是可计算的，不适用于订单ID生成场景，比如竞对在两天中午12点分别下单，通过订单id号相减就能大致计算出公司一天的订单量，这个是不能忍受的。面对这一问题，提供了 Leaf-snowflake方案。
+
+<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/721ceeff.png" alt="image" style="zoom:80%;" />
+
+Leaf-snowflake方案完全沿用snowflake方案的bit位设计，即是“**1+41+10+12**”的方式组装ID号。对于workerID的分配，当服务集群数量较小的情况下，完全可以手动配置。Leaf服务规模较大，动手配置成本太高。所以==使用Zookeeper持久顺序节点的特性自动对snowflake节点配置wokerID==。Leaf-snowflake是按照下面几个步骤启动的：
+
+1. 启动Leaf-snowflake服务，连接Zookeeper，在leaf_forever父节点下检查自己是否已经注册过（是否有该顺序子节点）。
+2. 如果有注册过直接取回自己的workerID（zk顺序节点生成的int类型ID号），启动服务。
+3. 如果没有注册过，就在该父节点下面创建一个持久顺序节点，创建成功后取回顺序号当做自己的workerID号，启动服务。
+
+<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/a3f985a8.png" alt="image" style="zoom: 67%;" />
+
+##### 4.2.1 弱依赖Zookeeper
+
+除了每次会去ZK拿数据以外，也会在本机文件系统上缓存一个workerID文件。当ZooKeeper出现问题，恰好机器出现问题需要重启时，能保证服务能够正常启动。这样做到了对三方组件的弱依赖。一定程度上提高了SLA。
+
+##### 4.2.2 解决时钟问题
+
+因为这种方案依赖时间，如果机器的时钟发生了回拨，那么就会有可能生成重复的ID号，需要解决时钟回退的问题。
+
+<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/1453b4e9.png" alt="image"  />
+
+服务启动时首先检查自己是否写过ZooKeeper leaf_forever节点：
+
+1. 若写过，则用自身系统时间与leaf_forever/${self}节点记录时间做比较，若小于leaf_forever/${self}时间则认为机器时间发生了大步长回拨，服务启动失败并报警。
+2. 若未写过，证明是新服务节点，直接创建持久节点leaf_forever/${self}并写入自身系统时间，接下来综合对比其余Leaf节点的系统时间来判断自身系统时间是否准确，具体做法是取leaf_temporary下的所有临时节点(所有运行中的Leaf-snowflake节点)的服务IP：Port，然后通过RPC请求得到所有节点的系统时间，计算sum(time)/nodeSize。
+3. 若abs( 系统时间-sum(time)/nodeSize ) < 阈值，认为当前系统时间准确，正常启动服务，同时写临时节点leaf_temporary/${self} 维持租约。
+4. 否则认为本机系统时间发生大步长偏移，启动失败并报警。
+5. 每隔一段时间(3s)上报自身系统时间写入leaf_forever/${self}。
+
+由于强依赖时钟，对时间的要求比较敏感，在机器工作时NTP同步也会造成秒级别的回退，建议可以直接关闭NTP同步。要么在时钟回拨的时候直接不提供服务直接返回ERROR_CODE，等时钟追上即可。**或者做一层重试，然后上报报警系统，更或者是发现有时钟回拨之后自动摘除本身节点并报警**，如下：
+
+```java
+// 发生了回拨，此刻事件小于上次拨号时间
+if (timestamp < lastTimestamp) {
+  long offset = lastTimestamp - timestamp;
+  if (offset <= 5) {
+    try {
+      // 时间偏差大小小于5ms，则等待两倍时间
+      wait(offset << 1);
+      timestamp = timeGen();
+      if (timestamp < lastTimestamp) {
+        //还是小于，返回异常
+        return new Result(-1, Status.EXCEPTION);
+      }
+    } catch (InterruptedException e) {
+      LOGGER.error("wait interrupted");
+      return new Result(-2, Status.EXCEPTION);
+    }
+  } else {
+    return new Result(-3, Status.EXCEPTION);
+  }
+}
+// 分配ID
+```
 
 
 
+#### 4.3 Leaf现状
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Leaf在美团点评公司内部服务包含金融、支付交易、餐饮、外卖、酒店旅游、猫眼电影等众多业务线。目前Leaf的性能在4C8G的机器上QPS能压测到近**5w/s**，**TP999 1ms**，已经能够满足大部分的业务的需求。每天提供亿数量级的调用量，作为公司内部公共的基础技术设施，必须保证高SLA和高性能的服务，我们目前还仅仅达到了及格线，还有很多提高的空间。
