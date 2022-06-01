@@ -47,60 +47,48 @@ Nacos支持三种部署模式：
 
 [http://nacos.com](http://nacos.com/):port/openAPI 域名 + SLB模式(内网SLB，不可暴露到公网，以免带来安全风险)，可读性好，而且换ip方便，推荐模式。
 
-![](https://tva1.sinaimg.cn/large/008i3skNgy1gts9rhqdwdj60dj08b0sr02.jpg)
+![008i3skNgy1gts9rhqdwdj60dj08b0sr02](nacos%E5%AE%89%E8%A3%85.assets/008i3skNgy1gts9rhqdwdj60dj08b0sr02.jpg)
 
->请确保是在环境中安装使用:
->
->1. 64 bit OS Linux/Unix/Mac，推荐使用Linux系统。
->2. 64 bit JDK 1.8+；
->3. Maven 3.2.x+；
->4. 3个或3个以上Nacos节点才能构成集群。
+请确保是在环境中安装使用:
 
-
-
-> 下载编译后压缩包方式
->
-> [zip包](https://github.com/alibaba/nacos/releases/download/1.3.0/nacos-server-1.3.0.zip)
->
-> ```shell
-> unzip nacos-server-1.3.0.zip
-> ```
->
-> [tar.gz包](https://github.com/alibaba/nacos/releases/download/1.3.0/nacos-server-1.3.0.tar.gz)
->
-> ```shell
-> tar -xvf nacos-server-1.3.0.tar.gz
-> ```
+1. 64 bit OS Linux/Unix/Mac，推荐使用Linux系统。
+2. 64 bit JDK 1.8+；
+3. Maven 3.2.x+；
+4. 3个或3个以上Nacos节点才能构成集群。
 
 
 
-> 集群配置文件（在nacos的解压目录nacos/的conf目录下，有配置文件cluster.conf，配置3个或3个以上节点）：
->
-> ```
-> # ip:port
-> 200.8.9.16:8848
-> 200.8.9.17:8848
-> 200.8.9.18:8848
-> ```
+下载编译后压缩包方式
+
+[zip包](https://github.com/alibaba/nacos/releases/download/1.3.0/nacos-server-1.3.0.zip)
+
+```sh
+unzip nacos-server-1.3.0.zip
+```
+
+[tar.gz包](https://github.com/alibaba/nacos/releases/download/1.3.0/nacos-server-1.3.0.tar.gz)
+
+```sh
+tar -xvf nacos-server-1.3.0.tar.gz
+```
 
 
 
->确定数据源
->
->- 使用内置数据源（无需配置）
->  - `sh startup.sh -p embedded`
->- 使用mysql（生产建议至少主备模式），初始化mysql数据库，修改application.properties文件
->  - `sh startup.sh`
+集群配置文件（在nacos的解压目录nacos/的conf目录下，有配置文件cluster.conf，配置3个或3个以上节点）：
 
+```
+# ip:port
+200.8.9.16:8848
+200.8.9.17:8848
+200.8.9.18:8848
+```
 
+确定数据源
 
->服务注册：`curl -X PUT 'http://127.0.0.1:8848/nacos/v1/ns/instance?serviceName=nacos.naming.serviceName&ip=20.18.7.10&port=8080'`
->
->服务发现：`curl -X GET 'http://127.0.0.1:8848/nacos/v1/ns/instance/list?serviceName=nacos.naming.serviceName'`
->
->发布配置：`curl -X POST "http://127.0.0.1:8848/nacos/v1/cs/configs?dataId=nacos.cfg.dataId&group=test&content=helloWorld"`
->
->获取配置：`curl -X GET "http://127.0.0.1:8848/nacos/v1/cs/configs?dataId=nacos.cfg.dataId&group=test"`
+- 使用内置数据源（无需配置）
+- `sh startup.sh -p embedded`
+- 使用mysql（生产建议至少主备模式），初始化mysql数据库，修改application.properties文件
+- `sh startup.sh`
 
 
 
