@@ -59,45 +59,73 @@ dispatcherTypes 默认`REQUEST`。
 
 
 
+#### 4. 防盗链
+
+---
+
+filter的特性使它可以处理特殊的工作，例如防盗链，字符编码的处理，日志记录，数据加密，过滤一些黑词等等。
+
+例如： 防盗链图片，当其他网站请求本网站图片资源时显示错误的图片，只有本应用先生的图片才显示正确的图片，代码如下：
+
+```java
+@Component
+@WebFilter(urlPatterns = "/images/*", filterName = "imageFilter")
+public class ImageFilter implements Filter{
+  public void init(FilterConfig config) throws Exception(){
+
+  }
+  public void doFilter(ServletRequest req,ServletResponse res,FilterChain chain)throws Exception{
+    HttpServletRequest request=(HttpServletRequest )req;
+    HttpServletResponse  response=(HttpServletResponse)res;
+    String referer=request.getHeader("referer");
+    if(referer==null||!referer.contains(request.getServerName())){
+      request.getRequestDispatcher("/error.png").forwar(request,response);
+    }else{
+      chain.doFilter(request,response);
+    }
+  }
+  public void destroy(){}
+
+}
+```
+
+当访问images下的所有图片会经过该filter，根据访问头信息，如果说本站点的访问则显示正确图片，否则先生错误图片。
 
 
 
+#### 5. 字符编码
+
+---
+
+```javascript
+@WebFilter(urlPatterns = "/*", filterName = "CharsetFilter",
+           initParams = {@WebInitParam(name = "characterEncoding", value = "UTF-8"),
+@WebInitParam(name = "enabled", value = "true")})
+public class CharsetFilter implements Filter{
+  private String characterEncoding;
+  private String enabled;
+  public void init(FilterConfig config) throws Exception(){
+    characterEncoding=config.getInitParameter("characterEncoding");
+    enabled=config.getInitParameter("enabled").equals("true");
+  }
+  public void doFilter(ServletRequest req,ServletResponse res,FilterChain chain)throws Exception{
+    if(enabled|| characterEncoding!=null){
+      req.setCharacterEncoding(characterEncoding);
+      res.setCharacterEncoding(characterEncoding);
+    }
+    chain.doFilter(req,res);
+  }
+
+  public void destroy(){
+    characterEncoding=null;
+  }
+}
+```
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+>另外，还有比较常见的日志记录filter、异常捕捉filter、权限校验、内容替换filter等等。
+>
+>filter有很大的弹性机制，功能强大，而且跟servlet、jsp没耦合.filter是现在面向切面编程aop的一种思想体现，它能够胜任很多工作。
+>
+>2.5的fiter需要在web.xml中配置，执行顺序按照配置顺序，另外3.0可以用注解的方式配置filter，此时没有配置的顺序。
