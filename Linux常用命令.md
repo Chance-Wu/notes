@@ -1,4 +1,28 @@
-# 设置或显示环境变量
+### 查看当前进程有多少存活线程
+
+---
+
+#### pstree -p 进程id
+
+查看进程树之间的关系。
+
+```shell
+chenyang@chances-MacBook-Pro ~ % pstree -p 410
+-+= 00001 root /sbin/launchd
+ \-+= 00410 chenyang /Applications/Google Chrome.app/Contents/MacOS/Google Chro
+   |--- 00469 chenyang /Applications/Google Chrome.app/Contents/Frameworks/Goog
+   |--- 00475 chenyang /Applications/Google Chrome.app/Contents/Frameworks/Goog
+```
+
+可以看出每个进程的pid，所属用户
+
+
+
+
+
+### 设置或显示环境变量
+
+---
 
 在shell中执行程序时，shell会提供一组环境变量。export可新增，修改或删除环境变量，供后续执行的程序使用。export的效力仅限于该次登录操作。
 
@@ -14,9 +38,9 @@ export [-fnp][变量名称]=[变量设置值]
 
 `export MYENV=7`：定义环境变量赋值。
 
-# 查看日志
+### 查看日志
 
-## tail
+#### tail
 
 -n显示行号；相当于nl命令（number of line）
 
@@ -26,7 +50,7 @@ export [-fnp][变量名称]=[变量设置值]
 
 `tail -n +10 test.log` 查询10行之后的所有日志；
 
-## head
+#### head
 
 和tail相反
 
@@ -34,7 +58,7 @@ export [-fnp][变量名称]=[变量设置值]
 
 `head -n -10 test.log` 查询日志文件除了最后10行的其他所有日志；
 
-## cat
+#### cat
 
 `cat -n test.log |grep "debug"` 查询关键字的日志；
 
@@ -42,7 +66,7 @@ export [-fnp][变量名称]=[变量设置值]
 
 使用 >xxx.txt 将其保存到文件中,到时可以拉下这个文件分析
 
-## sed
+#### sed
 
 sed -n '/2014-12-17 16:17:20/,/2014-12-17 16:17:36/p' test.log
 
@@ -52,31 +76,33 @@ sed -n '/2014-12-17 16:17:20/,/2014-12-17 16:17:36/p' test.log
 
 
 
-# jps
+### jps
+
+---
 
 > 是jdk提供的一个==查看当前java进程==的小工具，可以看作是JavaVirtual Machine Process Status Tool的缩写。
 >
 > 命令格式：**jps [options ] [ hostid ]** 
 
-## 查看当前java进程
+#### 查看当前java进程
 
 ```shell
 $ jps
 ```
 
-## 输出主类或者jar的完全路径
+#### 输出主类或者jar的完全路径
 
 ```shell
 $ jps -l
 ```
 
-## 输出jvm参数
+#### 输出jvm参数
 
 ```shell
 $ jps -v
 ```
 
-## 仅仅显示java进程号
+#### 仅仅显示java进程号
 
 ```shell
 $ jps -q
@@ -84,7 +110,9 @@ $ jps -q
 
 > 注意：如果需要查看其他机器上的jvm进程，需要在待查看机器上启动jstatd。
 
-# jstat（JVM的统计监测工具）
+### jstat（JVM的统计监测工具）
+
+---
 
 > JVM statistics Monitoring，用于监视虚拟机运行时状态信息的命令，它可以显示出虚拟机进程中的类装载、内存、垃圾收集、JIT编译等运行数据。
 >
@@ -95,7 +123,7 @@ $ jps -q
 >
 > 命令格式如下：**jstat [-命令选项] [vmid] [间隔时间/毫秒] [查询次数]**
 
-## 垃圾回收统计
+#### 垃圾回收统计
 
 > ```shell
 > $ jstat -gc pid
@@ -119,7 +147,7 @@ $ jps -q
 > - FGCT：老年代垃圾回收消耗时间
 > - GCT：垃圾回收消耗总时间
 
-## 总结垃圾回收统计
+#### 总结垃圾回收统计
 
 > ```shell
 > $ jstat -gcutil pid
@@ -136,7 +164,7 @@ $ jps -q
 > FGCT：老年代垃圾回收消耗时间
 > GCT：垃圾回收消耗总时间
 
-## 堆内存统计
+#### 堆内存统计
 
 > ```shell
 > $ jstat -gccapacity pid
@@ -161,7 +189,7 @@ $ jps -q
 > YGC：年轻代gc次数
 > FGC：老年代GC次数
 
-## 元数据空间统计
+#### 元数据空间统计
 
 > ```shell
 > jstat -gcmetacapacity pid
@@ -178,7 +206,7 @@ $ jps -q
 > FGCT：老年代垃圾回收消耗时间
 > GCT：垃圾回收消耗总时间
 
-## 新生代/老年代内存空间统计
+#### 新生代/老年代内存空间统计
 
 > ```shell
 > $ jstat -gcnewcapacity pid 
@@ -188,7 +216,7 @@ $ jps -q
 > $ jstat -gcoldcapacity pid
 > ```
 
-## 查看JVM内存使用详情
+#### 查看JVM内存使用详情
 
 > jmap命令是一个可以输出所有内存中对象的工具，甚至可以将VM 中的heap，以二进制输出成文本。打印出某个java进程（使用pid）内存内的，所有‘对象’的情况（如：产生那些对象，及其数量）。
 >
@@ -206,7 +234,7 @@ $ jps -q
 > remote-hostname-or-IP:     远程debug服务的主机名或ip;
 > server-id:     唯一id,假如一台主机上多个远程debug服务;
 
-## 使用hprof二进制形式，输出jvm的heap内容到文件xxx
+#### 使用hprof二进制形式，输出jvm的heap内容到文件xxx
 
 > ```shell
 > $ jmap -dump:live,format=b,file=myjmapfile.txt 19570
@@ -214,19 +242,19 @@ $ jps -q
 >
 > live子选项是可选的，假如指定live选项,那么只输出活的对象到文件。
 
-## 打印正等候回收的对象的信息
+#### 打印正等候回收的对象的信息
 
 > ```shell
 > $ jmap -finalizerinfo 3772
 > ```
 
-## 打印heap的概要信息，GC使用的算法，heap（堆）的配置及JVM堆内存的使用情况
+#### 打印heap的概要信息，GC使用的算法，heap（堆）的配置及JVM堆内存的使用情况
 
 > ```shell
 > $ jmap -heap 19570
 > ```
 
-## 打印每个class的实例数目,内存占用,类全名信息
+#### 打印每个class的实例数目,内存占用,类全名信息
 
 > ```shell
 > $ jmap -histo:live 19570
@@ -238,7 +266,7 @@ $ jps -q
 >
 > jmap -dump:format=b,file=outfile 3024可以将3024进程的内存heap输出出来到outfile文件里，再配合MAT（内存分析工具）。
 
-## 打印classload和jvm heap长久层的信息
+#### 打印classload和jvm heap长久层的信息
 
 > ```shell
 > $ jmap -permstat 19570

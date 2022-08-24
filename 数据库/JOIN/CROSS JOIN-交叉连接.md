@@ -1,6 +1,6 @@
-![image-20220519005035198](CROSS%20JOIN.assets/image-20220519005035198.png)
+![image-20220519005035198](img/image1.png)
 
-![image-20220519005112806](CROSS%20JOIN.assets/image-20220519005112806-2892674.png)
+![image-20220519005112806](img/image2.png)
 
 笛卡尔积（交叉连接）就是将表1的每条记录与表2中的每一条记录拼成数据对，`CROSS JOIN`的SQL执行语句如下：
 
