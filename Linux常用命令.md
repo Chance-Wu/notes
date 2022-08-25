@@ -14,9 +14,33 @@ chenyang@chances-MacBook-Pro ~ % pstree -p 410
    |--- 00475 chenyang /Applications/Google Chrome.app/Contents/Frameworks/Goog
 ```
 
-可以看出每个进程的pid，所属用户
+可以看出每个进程的pid，所属用户。
 
+#### cat /proc/进程id/status
 
+```shell
+cat /proc/27402/status
+```
+
+#### Top -p 进程id，然后按H
+
+比如某台服务器的CPU使用率飙升，通过top命令查看是gitlab程序占用的cpu比较大，"ps -ef|grep gitlab"发现有很多个gitlab程序，现在需要查询gitlab各个进程下的线程数情况。批量查询命令如下：
+
+```shell
+# for pid in $(ps -ef|grep -v grep|grep gitlab|awk '{print $2}');do echo ${pid} > /root/a.txt ;cat /proc/${pid}/status|grep Threads > /root/b.txt;paste /root/a.txt /root/b.txt;done|sort -k3 -rn
+```
+
+1. `for pid in $(ps -ef|grep -v grep|grep gitlab|awk '{print $2}')`
+2. 定义${pid}变量为gitlab进程的pid号
+3. echo ${pid} > /root/a.txt
+4. 将http进程的pid号都打印到/root/a.txt文件中
+5. cat /proc/${pid}/status|grep Threads > /root/b.txt
+6. 将各个pid进程号下的线程信息打印到/root/b.txt文件中
+7. `paste /root/a.txt /root/b.txt`
+8. 以列的形式展示a.txt和b/txt文件中的信息
+9. sort -k3 -rn
+   1. -k3 表示以第三列进行排序
+   2. -rn 表示降序
 
 
 

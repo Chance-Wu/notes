@@ -84,7 +84,7 @@ mysql> show status like 'Innodb_row_lock%';
 
 如果有root权限，可以看到所有线程。否则，您只能看到登录的用户自己的线程，通常只会显示100条如果想看跟多的可以使用full修饰（`show full processlist`）
 
-![](https://tva1.sinaimg.cn/large/008i3skNgy1gx5n6svxn1j30ha026q2y.jpg)
+![](img/008i3skNgy1gx5n6svxn1j30ha026q2y.jpg)
 
 参数
 
