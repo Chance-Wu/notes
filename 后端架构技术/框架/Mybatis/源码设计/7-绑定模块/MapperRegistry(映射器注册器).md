@@ -1,22 +1,17 @@
-`org.apache.ibatis.binding`
+```
+org.apache.ibatis.binding
+		BindingException
+		MapperMethod
+		MapperProxy
+		MapperProxyFactory
+		MapperRegistry
+```
 
-​		BindingException
-
-​		MapperMethod
-
-​		MapperProxy
-
-​		MapperProxyFactory
-
-​		`MapperRegistry`	
-
-
-
-==映射器注册器对外，会被Configuration类直接调用，用于将用户自定义的映射器全部注册到注册器中。==
+映射器注册器对外，会被Configuration类直接调用，用于将用户自定义的映射器全部注册到注册器中。
 
 
 
-#### MapperRegistry——映射器注册器
+### 一、MapperRegistry
 
 ---
 
@@ -32,7 +27,7 @@ MapperProxyFactory是映射器代理工厂，通过这个工厂类可以获取�
 
 
 
-#### addMappers()
+### 二、addMappers()
 
 ---
 
@@ -90,18 +85,18 @@ public <T> void addMapper(Class<T> type) {
 >1. （接口验证）验证要添加的映射器的类型是否是接口，如果不是接口则结束添加，如果是接口则执行下一步；
 >2. （重复注册验证）验证注册器集合中是否已存在该注册器，如果已存在则抛出绑定异常，否则执行下一步；
 >3. 定义一个boolean值，默认为false；
->4. 执行HashMap的put方法，将该映射器注册到注册器中：==以该接口类型为键，以接口类型为参数调用MapperProxyFactory的构造器创建的映射器代理工厂为值==；
+>4. 执行HashMap的put方法，将该映射器注册到注册器中：**以该接口类型为键，以接口类型为参数调用MapperProxyFactory的构造器创建的映射器代理工厂为值**；
 >5. 然后对使用注解方式实现的映射器进行注册（一般不使用）；
 >6. 设置第3步的boolean值为true，表示注册完成；
 >7. 在finally语句块中对注册失败的类型进行清除。
 
 
 
-#### getMapper()
+### 三、getMapper()
 
 ---
 
-==从集合中获取指定接口类型的映射器代理工厂，然后使用这个代理工厂创建映射器代理实例并返回==，那么我们就可以获取到映射器的代理实例：
+从集合中获取指定接口类型的映射器代理工厂，然后使用这个代理工厂创建映射器代理实例并返回，那么我们就可以获取到映射器的代理实例：
 
 ```java
 /**
@@ -122,7 +117,7 @@ public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
 
 
 
-#### MapperProxyFactory——映射器代理工厂
+### 四、MapperProxyFactory
 
 ---
 
@@ -157,15 +152,14 @@ public class MapperProxyFactory<T> {
     final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession, mapperInterface, methodCache);
     return newInstance(mapperProxy);
   }
-
 }
 ```
 
->映射方法单独定义，是因为这里并不存在一个真正的类和方法供调用，只是通过反射和代理的原理来实现的假的调用，==映射方法是调用的最小单位（独立个体）==，将映射方法定义之后，它就成为一个实实在在的存在，我们可以将调用过的方法保存到对应的映射器的缓存中，以供下次调用，避免每次调用相同的方法的时候都需要重新进行方法的生成。
+映射方法单独定义，是因为这里并不存在一个真正的类和方法供调用，只是通过反射和代理的原理来实现的假的调用，**映射方法是调用的最小单位（独立个体）**，将映射方法定义之后，它就成为一个实实在在的存在，我们可以将调用过的方法保存到对应的映射器的缓存中，以供下次调用，避免每次调用相同的方法的时候都需要重新进行方法的生成。
 
 
 
-#### MapperProxy——映射器代理
+### 五、MapperProxy——映射器代理
 
 ---
 
@@ -332,7 +326,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
 
 
 
-#### MapperMethod——映射器方法
+### 六、MapperMethod
 
 ---
 
@@ -434,7 +428,7 @@ public static class SqlCommand {
 
   // SQL命令的名称（全限定名.方法名称）
   private final String name;
-		// SQL命令的类型（UNKNOWN, INSERT, UPDATE, DELETE, SELECT, FLUSH）
+  // SQL命令的类型（UNKNOWN, INSERT, UPDATE, DELETE, SELECT, FLUSH）
   private final SqlCommandType type;
 
   public SqlCommand(Configuration configuration, Class<?> mapperInterface, Method method) {
