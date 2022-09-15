@@ -1,4 +1,4 @@
-<img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gkam0ali3aj30om0h4q4n.jpg" style="zoom:80%">
+<img src="img/0081Kckwgy1gkam0ali3aj30om0h4q4n.jpg" style="zoom:80%">
 
 #### 1. jdk介绍
 
@@ -18,7 +18,7 @@
 >
 >==每一种平台的解释器是不同的==，但是实现的虚拟机是相同的，这也就是 Java 为什么能够跨平台的原因了，==当一个程序从开始运行，这时虚拟机就开始实例化了，多个程序启动就会存在多个虚拟机实例==。程序退出或者关闭，则虚拟机实例消亡，多个虚拟机实例之间数据不能共享。
 
-<img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gm72yov3i0j30uj0u040s.jpg" style="zoom:60%">
+<img src="img/0081Kckwgy1gm72yov3i0j30uj0u040s.jpg" style="zoom:60%">
 
 ##### 2.1 内存结构还是运行时数据区
 
@@ -32,4 +32,4 @@
 >
 >*<u>方法区中包含了运行时常量池</u>*。
 >
-><img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gm72z927tpj30qg0eqgmr.jpg" style="zoom:60%">
+><img src="img/0081Kckwgy1gm72z927tpj30qg0eqgmr.jpg" style="zoom:60%">
