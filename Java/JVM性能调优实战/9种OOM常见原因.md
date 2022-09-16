@@ -115,37 +115,72 @@ JDK 1.8 使用 Metaspace 替换了永久代（Permanent Generation），该错�
 
 ---
 
-该错误表示可用的虚拟内存已被耗尽。虚拟内存（Virtual Memory）由物理内存（Physical Memory）和交换空间（Swap Space）两部分组成。当运行时程序请求的虚拟内存溢出时就会报 `Outof swap space?` 错误。
+该错误表示可用的虚拟内存已被耗尽。虚拟内存（Virtual Memory）由物理内存（Physical Memory）和交换空间（Swap Space）两部分组成。当运行时程序请求的虚拟内存溢出时就会报 `Out of swap space` 错误。
+
+#### 6.1 原因分析
+
+常见原因包括以下几类：
+
+1. 地址空间不足；
+2. 物理内存已耗光；
+3. 应用程序的本地内存泄漏（native leak），例如不断申请本地内存，却不释放。
+4. 执行 `jmap -histo:live <pid>` 命令，强制执行 Full GC；如果几次执行后内存明显下降，则基本确认为 Direct ByteBuffer 问题。
+
+#### 6.2 解决方案
+
+1. 升级地址空间为 64 bit；
+2. 使用 Arthas 检查是否为 Inflater/Deflater 解压缩问题，如果是，则显式调用 end 方法。
+3. Direct ByteBuffer 问题可以通过启动参数 `-XX:MaxDirectMemorySize` 调低阈值。
+4. 升级服务器配置/隔离部署，避免争用。
 
 
 
+### 七、Kill process or sacrifice child
+
+---
+
+有一种内核作业（Kernel Job）名为 Out of Memory Killer，它会**在可用内存极低的情况下“杀死”（kill）某些进程**。OOM Killer 会对所有进程进行打分，然后将评分较低的进程“杀死”，具体的评分规则可以参考 Surviving the Linux OOM Killer。
+
+#### 7.1 原因分析
+
+默认情况下，Linux 内核允许进程申请的内存总量大于系统可用内存，通过这种“错峰复用”的方式可以更有效的利用系统资源。
+
+然而，这种方式也会无可避免地带来一定的“超卖”风险。例如某些进程持续占用系统内存，然后导致其他进程没有可用内存。此时，系统将自动激活 OOM Killer，寻找评分低的进程，并将其“杀死”，释放内存资源。
+
+#### 7.2 解决方案
+
+1. 升级服务器配置/隔离部署，避免争用。
+2. OOM Killer 调优。
 
 
 
+### 八、Requested array size exceeds VM limit
+
+---
+
+JVM 限制了数组的最大长度，该错误表示程序请求创建的数组超过最大长度限制。
+
+JVM 在为数组分配内存前，会检查要分配的数据结构在系统中是否可寻址，通常为 `Integer.MAX_VALUE-2`。
+
+此类问题比较罕见，通常需要检查代码，确认业务是否需要创建如此大的数组，是否可以拆分为多个块，分批执行。
 
 
 
+### 九、Direct buffer memory
 
+---
 
+Java 允许应用程序通过 Direct ByteBuffer 直接访问堆外内存，许多高性能程序通过 Direct ByteBuffer 结合内存映射文件（Memory Mapped File）实现高速 IO。
 
+#### 9.1 原因分析
 
+Direct ByteBuffer 的默认大小为 64 MB，一旦使用超出限制，就会抛出 `Directbuffer memory` 错误。
 
+#### 9.2 解决方案
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+1. Java 只能通过 `ByteBuffer.allocateDirect` 方法使用 Direct ByteBuffer，因此，可以通过 Arthas 等在线诊断工具拦截该方法进行排查。
+1. 检查是否直接或间接使用了 NIO，如 netty，jetty 等。
+1. 通过启动参数 `-XX:MaxDirectMemorySize` 调整 Direct ByteBuffer 的上限值。
+1. 检查 JVM 参数是否有 `-XX:+DisableExplicitGC` 选项，如果有就去掉，因为该参数会使 `System.gc()` 失效。
+1. 检查堆外内存使用代码，确认是否存在内存泄漏；或者通过反射调用 `sun.misc.Cleaner` 的 `clean()` 方法来主动释放被 Direct ByteBuffer 持有的内存空间。
+1. 内存容量确实不足，升级配置。

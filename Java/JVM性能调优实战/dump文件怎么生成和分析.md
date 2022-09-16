@@ -2,32 +2,40 @@ dump文件是进程的内存镜像。可以把程序的执行状态通过调试�
 
 
 
-#### 1. 获取JVM dump文件的2种方式
+### 一、获取JVM dump文件的2种方式
 
 ---
 
->方式一：JVM启动时增加两个参数（建议使用）
->
->```shell
->#出现 OOME 时生成堆 dump: 
->-XX:+HeapDumpOnOutOfMemoryError
->#生成堆文件地址：
->-XX:HeapDumpPath=/home/liuke/jvmlogs/
->```
->
->方式二：发现程序异常前通过执行指令，直接生成当前JVM的dmp文件
->
->```shell
->jmap -dump:format=b,file=/home/admin/logs/heap.hprof 6214
->```
->
->获得heap.hprof以后，就可以分析你的java线程里面对象占用堆内存的情况了。
->
->由于第一种方式是一种事后方式，需要等待当前JVM出现问题后才能生成dmp文件，实时性不高，第二种方式在执行时，JVM是暂停服务的，所以*<u>对线上的运行会产生影响</u>*。所以建议第一种方式。
+#### 1.1 方式一
+
+JVM启动时增加两个参数（建议使用）
+
+```
+#出现 OOME 时生成堆 dump: 
+-XX:+HeapDumpOnOutOfMemoryError
+#生成堆文件地址：
+-XX:HeapDumpPath=/usr/local/jvmlogs/heap.hprof
+```
+
+是一种事后方式，需要等待当前JVM出现问题后才能生成dmp文件，实时性不高。
 
 
 
-#### 2. 查看整个JVM内存状态
+#### 1.2 方式二
+
+发现程序异常前通过执行指令，直接生成当前JVM的dmp文件
+
+```shell
+jmap -dump:format=b,file=/home/admin/logs/heap.hprof 6214
+```
+
+获得heap.hprof以后，就可以分析你的java线程里面对象占用堆内存的情况了。
+
+在执行时，JVM是暂停服务的，所以**对线上的运行会产生影响**。
+
+
+
+### 二、整个JVM内存状态
 
 ---
 
@@ -37,7 +45,7 @@ jmap -heap [pid]
 
 
 
-#### 3. 查看JVM堆中对象详细占用情况
+### 三、JVM堆中对象详细占用情况
 
 ---
 
@@ -47,12 +55,11 @@ jmap -histo [pid]
 
 
 
-#### 4. 导出整个JVM中内存信息，可以利用其它工具打开dump文件分析
+### 四、导出整个JVM中内存信息，可以利用其它工具打开dump文件分析
 
 ---
 
 ```shell
-jmap -dump:file=文件名.dump [pid]
 jmap -dump:format=b,file=文件名 [pid]
 ```
 
@@ -60,7 +67,7 @@ format=b指定为二进制格式文件。
 
 
 
-#### 5. 使用用具分析
+### 五、使用工具分析
 
 ---
 
@@ -69,7 +76,7 @@ format=b指定为二进制格式文件。
 jstack pid
 ```
 
-##### 5.1 dump文件结构
+#### 5.1 dump文件结构
 
 ```shell
 2021-08-10 15:45:58
@@ -459,38 +466,30 @@ JNI global references: 246
 
 > 线程当前的状态是我们主要关注的内容。
 
+#### 5.2 dump文件中描述的线程状态
 
+- runnable：运行中状态，在虚拟机内部执行，可能已经获取到了锁，可以观察是否有locked字样。
+- blocked：被阻塞并等待锁的释放。
+- wating：处于等待状态，等待特定的操作被唤醒，一般停留在park(), wait(), sleep(),join() 等语句里。
+- time_wating：有时限的等待另一个线程的特定操作。
+- terminated：线程已经退出。
 
-##### 5.2 dump文件中描述的线程状态
+#### 5.3 进程区域的划分
 
-runnable：运行中状态，在虚拟机内部执行，可能已经获取到了锁，可以观察是否有locked字样。
-blocked：被阻塞并等待锁的释放。
-wating：处于等待状态，等待特定的操作被唤醒，一般停留在park(), wait(), sleep(),join() 等语句里。
-time_wating：有时限的等待另一个线程的特定操作。
-terminated：线程已经退出。
-
-
-
-##### 5.3 进程区域的划分
-
-<img src="https://tva1.sinaimg.cn/large/008i3skNgy1gtcjvtl2fij30f308yq31.jpg" style="zoom:80%;" />
+<img src="img/008i3skNgy1gtcjvtl2fij30f308yq31.jpg" style="zoom:80%;" />
 
 - 进入区（Entry Set）：等待获取对象锁，一旦对象释放锁，立即参与竞争；
 - 拥有区（The Owner）：已经获取到锁；
 - 等待区（Wait Set）：表示线程通过wait方法释放了对象锁，并在等待区等待被唤醒。
 
-
-
-##### 5.4 方法调用修饰
+#### 5.4 方法调用修饰
 
 - locked: 成功获取锁；
 - waiting to lock：还未获取到锁，在进入去等待；
 - waiting on：获取到锁之后，又释放锁，在等待区等待；
 - parking to wait for：等待许可证； （参考LockSupport.park和unpark操作）
 
-
-
-##### 5.5 结尾
+#### 5.5 结尾
 
 以下名称为'http-nio-8080-exec-10'的线程当前正处于等待状态，等待其他线程释放许可证。（先了解LockSupport的park和unpark操作）
 
