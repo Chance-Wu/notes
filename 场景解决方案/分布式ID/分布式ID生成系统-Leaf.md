@@ -53,7 +53,7 @@ UUID(Universally Unique Identifier)的标准型式包含**32个16进制数字，
 
 大致来说是一种以划分命名空间（UUID也算，由于比较常见，所以单独分析）来生成ID的一种算法，这种方案把64-bit分别划分成多段，分开来标示机器、时间等，比如在snowflake中的64-bit分别表示如下图所示：
 
-<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/01888770c8f84b1df258ddd1d424535c68559.png" alt="image" style="zoom:50%;" />
+<img src="img/01888770c8f84b1df258ddd1d424535c68559.png" alt="image" style="zoom:50%;" />
 
 41-bit的时间可以表示（1L<<41）/(1000L*3600*24*365)=69年的时间，10-bit机器可以分别表示1024台机器。如果我们对IDC划分有需求，还可以将10-bit分5-bit给IDC，分5-bit给工作机器。这样就可以表示32个IDC，每个IDC下可以有32台机器，可以根据自身需求定义。12个自增序列号可以表示2^12个ID，理论上snowflake方案的QPS约为409.6w/s，这种分配方式可以保证在任何一个IDC的任何一台机器在任意毫秒内生成的ID都是不同的。
 
@@ -93,7 +93,7 @@ SELECT LAST_INSERT_ID();
 commit;
 ```
 
-<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/8a4de8e8.png" alt="image" style="zoom: 50%;" />
+<img src="img/8a4de8e8.png" alt="image" style="zoom: 50%;" />
 
 >优点：
 >
@@ -119,7 +119,7 @@ auto-increment-offset = 2
 
 假设我们要部署N台机器，步长需设置为N，每台的初始值依次为0,1,2…N-1那么整个架构就变成了如下图所示：
 
-<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/6d2c9ec8.png" alt="image" style="zoom: 80%;" />
+<img src="img/6d2c9ec8.png" alt="image" style="zoom: 80%;" />
 
 - 系统水平扩展比较困难，比如定义好了步长和机器台数之后，如果要添加机器该怎么做？假设现在只有一台机器发号是1,2,3,4,5（步长是1），这个时候需要扩容机器一台。可以这样做：把第二台机器的初始值设置得比第一台超过很多，比如14（假设在扩容时间之内第一台不可能发到14），同时设置步长为2，那么这台机器下发的号码都是14以后的偶数。然后摘掉第一台，把ID值保留为奇数，比如7，然后修改第一台的步长为2。让它符合我们定义的号段标准，对于这个例子来说就是让第一台以后只能产生奇数。扩容方案看起来复杂吗？貌似还好，现在想象一下如果我们线上有100台机器，这个时候要扩容该怎么做？简直是噩梦。所以系统水平扩展方案复杂难以实现。
 - ID没有了单调递增的特性，只能趋势递增，这个缺点对于一般业务需求不是很重要，可以容忍。
@@ -165,7 +165,7 @@ DESCRIBE `leaf-segment`
 - max_id表示该biz_tag目前所被分配的ID号段的最大值
 - **step表示每次分配的号段长度**。原来获取ID每次都需要写数据库，现在只需要把step设置得足够大，比如1000。那么只有当1000个号被消耗完了之后才会去重新读写一次数据库。读写数据库的频率从1减小到了1/step。
 
-<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/5e4ff128.png" alt="image" style="zoom: 80%;" />
+<img src="img/5e4ff128.png" alt="image" style="zoom: 80%;" />
 
 ==test_tag在第一台Leaf机器上是1~1000的号段，当这个号段用完时，会去加载另一个长度为step=1000的号段，假设另外两台号段都没有更新，这个时候第一台机器新加载的号段就应该是3001~4000。同时数据库对应的biz_tag这条数据的max_id会从3000被更新成4000==，更新号段的SQL语句如下：
 
@@ -199,7 +199,7 @@ Leaf 取号段的时机是在号段消耗完的时候进行的，也就意味着
 
 为此，我们希望DB取号段的过程能够做到无阻塞，不需要在DB取号段的时候阻塞请求线程，即==当号段消费到某个点时就异步的把下一个号段加载到内存中。而不需要等到号段用尽的时候才去更新号段。这样做就可以很大程度上的降低系统的TP999指标==。详细实现如下图所示：
 
-<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/f2625fac.png" alt="image" style="zoom:80%;" />
+<img src="img/f2625fac.png" alt="image" style="zoom:80%;" />
 
 采用双buffer的方式，Leaf服务内部有两个号段缓存区segment。当前号段已下发10%时，如果下一个号段未更新，则另启一个更新线程去更新下一个号段。当前号段全部下发完后，如果下个号段准备好了则切换到下个号段为当前segment接着下发，循环往复。
 
@@ -210,7 +210,7 @@ Leaf 取号段的时机是在号段消耗完的时候进行的，也就意味着
 
 对于第三点“DB可用性”问题，目前采用**一主两从**的方式，同时**分机房部署**，Master和Slave之间采用**半同步方式**同步数据。同时使用公司Atlas数据库中间件(已开源，改名为[DBProxy](http://tech.meituan.com/dbproxy-introduction.html))做主从切换。当然这种方案在一些情况会退化成异步模式，甚至在**非常极端**情况下仍然会造成数据不一致的情况，但是出现的概率非常小。如果你的系统要保证100%的数据强一致，可以选择使用“类Paxos算法”实现的强一致MySQL方案，如MySQL 5.7前段时间刚刚GA的[MySQL Group Replication](https://dev.mysql.com/doc/refman/5.7/en/group-replication.html)。但是运维成本和精力都会相应的增加，根据实际情况选型即可。
 
-<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/0de883dd.png" alt="image" style="zoom:80%;" />
+<img src="img/0de883dd.png" alt="image" style="zoom:80%;" />
 
 同时Leaf服务分IDC部署，内部的服务化框架是“MTthrift RPC”。服务调用的时候，根据负载均衡算法会优先调用同机房的Leaf服务。在该IDC内Leaf服务不可用的时候才会选择其他机房的Leaf服务。同时服务治理平台OCTO还提供了针对服务的过载保护、一键截流、动态流量分配等对服务的保护措施。
 
@@ -218,7 +218,7 @@ Leaf 取号段的时机是在号段消耗完的时候进行的，也就意味着
 
 Leaf-segment方案可以生成趋势递增的ID，同时ID号是可计算的，不适用于订单ID生成场景，比如竞对在两天中午12点分别下单，通过订单id号相减就能大致计算出公司一天的订单量，这个是不能忍受的。面对这一问题，提供了 Leaf-snowflake方案。
 
-<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/721ceeff.png" alt="image" style="zoom:80%;" />
+<img src="img/721ceeff.png" alt="image" style="zoom:80%;" />
 
 Leaf-snowflake方案完全沿用snowflake方案的bit位设计，即是“**1+41+10+12**”的方式组装ID号。对于workerID的分配，当服务集群数量较小的情况下，完全可以手动配置。Leaf服务规模较大，动手配置成本太高。所以==使用Zookeeper持久顺序节点的特性自动对snowflake节点配置wokerID==。Leaf-snowflake是按照下面几个步骤启动的：
 
@@ -226,7 +226,7 @@ Leaf-snowflake方案完全沿用snowflake方案的bit位设计，即是“**1+41
 2. 如果有注册过直接取回自己的workerID（zk顺序节点生成的int类型ID号），启动服务。
 3. 如果没有注册过，就在该父节点下面创建一个持久顺序节点，创建成功后取回顺序号当做自己的workerID号，启动服务。
 
-<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/a3f985a8.png" alt="image" style="zoom: 67%;" />
+<img src="img/a3f985a8.png" alt="image" style="zoom: 67%;" />
 
 ##### 4.2.1 弱依赖Zookeeper
 
@@ -236,7 +236,7 @@ Leaf-snowflake方案完全沿用snowflake方案的bit位设计，即是“**1+41
 
 因为这种方案依赖时间，如果机器的时钟发生了回拨，那么就会有可能生成重复的ID号，需要解决时钟回退的问题。
 
-<img src="%E5%88%86%E5%B8%83%E5%BC%8FID%E7%94%9F%E6%88%90%E7%B3%BB%E7%BB%9F-Leaf.assets/1453b4e9.png" alt="image"  />
+<img src="img/1453b4e9.png" alt="image"  />
 
 服务启动时首先检查自己是否写过ZooKeeper leaf_forever节点：
 

@@ -8,7 +8,7 @@
 >
 >在一个多线程应用中，线程在操作一个非volatile变量时，处于性能考虑，每个线程可能会将变量从主存拷贝到CPU缓存中。如果有多个CPU，每个线程可能会在不同的CPU中运行。这意味着，每个线程都有可能把变量拷贝到各自CPU的缓存中。
 >
-><img src="https://tva1.sinaimg.cn/large/008eGmZEgy1gmvp28bnm7j30dy0br0ss.jpg" style="zoom:80%">
+><img src="img/008eGmZEgy1gmvp28bnm7j30dy0br0ss.jpg" style="zoom:80%">
 >
 >JVM并不保证会从主存中读取数据到CPU缓存，或者将CPU缓存中的数据写到主存中。
 
@@ -26,7 +26,7 @@
 >
 >这种没有声明为volatile的情况下，counter的值不保证会从CUP缓存写回到主存中。也就是说，CPU缓存和主存中的counter变量值并不一致。
 >
-><img src="https://tva1.sinaimg.cn/large/008eGmZEgy1gmvpcpklhej30d00b9jrl.jpg" style="zoom:80%">
+><img src="img/008eGmZEgy1gmvpcpklhej30d00b9jrl.jpg" style="zoom:80%">
 
 #### 2. 可见性保证
 
@@ -113,7 +113,7 @@
 
 >设想一下，如果线程1将共享变量counter的值0读取到它的CPU缓存，然后自增为1，而还没有将新值写回到主存。线程2这时从主存中读取的counter值依然是0，依然放到它自身的CPU缓存中，然后同样将counter值自增为1，同样也还没有将新值写回到主存。如下图所示：
 >
-><img src="https://tva1.sinaimg.cn/large/008eGmZEgy1gmw8dbodyyj30cx0b8aa9.jpg" style="zoom:80%">
+><img src="img/008eGmZEgy1gmw8dbodyyj30cx0b8aa9.jpg" style="zoom:80%">
 
 #### 6. 何时使用volatile
 

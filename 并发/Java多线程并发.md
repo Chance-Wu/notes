@@ -1,6 +1,6 @@
 #### 1. Java并发知识库
 
-<img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk2oot4p6aj31i40qedng.jpg" style="zoom:60%">
+<img src="img/0081Kckwgy1gk2oot4p6aj31i40qedng.jpg" style="zoom:60%">
 
 #### 2. Java线程实现 / 创建方式
 
@@ -195,7 +195,7 @@ while (true) {
 >
 > 直接调用该线程的 stop()方法来结束该线程—该方法通常*<u>容易导致死锁</u>*，不推荐使用。
 
-<img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk2ry3hbx7j31520dk75i.jpg" style="zoom:60%">
+<img src="img/0081Kckwgy1gk2ry3hbx7j31520dk75i.jpg" style="zoom:60%">
 
 #### 5. 终止线程四种方式
 
@@ -330,7 +330,7 @@ public class ThreadSafe extends Thread {
 
 > **Synchronized实现：**
 >
-> <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk3pc7jitaj311o0h6n0o.jpg" style="zomm:60%">
+> <img src="img/0081Kckwgy1gk3pc7jitaj311o0h6n0o.jpg" style="zomm:60%">
 >
 > 1. JVM 每次从队列的尾部取出一个数据用于锁竞争候选者（OnDeck），但是并发情况下，ContentionList 会被大量的并发线程进行 CAS 访问，为了降低对尾部元素的竞争，JVM 会将一部分线程移动到 EntryList 中作为候选竞争线程。
 >
@@ -596,7 +596,7 @@ public class ThreadSafe extends Thread {
 
 > wait，notify，notifyAll，sleep，join，yield 等
 >
-> <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk3zvr3aj5j30lc0dlt97.jpg" style="zoom:80%">
+> <img src="img/0081Kckwgy1gk3zvr3aj5j30lc0dlt97.jpg" style="zoom:80%">
 
 ##### 10.1 线程等待（wait）
 
@@ -671,7 +671,7 @@ public class ThreadSafe extends Thread {
 
 > 巧妙地利用了时间片轮转的方式, CPU 给每个任务都服务一定的时间，然后把当前任务的状态保存下来，在加载下一任务的状态后，继续服务下一任务，==任务的状态保存及再加载, 这段过程就叫做上下文切换==。时间片轮转的方式使多个任务在同一颗 CPU 上执行变成了可能。
 >
-> <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk4cjgzeq8j313408qaai.jpg" style="zomm:60%">
+> <img src="img/0081Kckwgy1gk4cjgzeq8j313408qaai.jpg" style="zomm:60%">
 
 ##### 11.1 进程
 
@@ -745,7 +745,7 @@ public class ThreadSafe extends Thread {
 >
 > Java 中的线程池是通过 Executor 框架实现的，该框架中用到了 Executor，Executors，ExecutorService，ThreadPoolExecutor ，Callable 和 Future、FutureTask 这几个类。
 >
-> <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk4dfieqh9j313i0jowj6.jpg" style="zoom:60%">
+> <img src="img/0081Kckwgy1gk4dfieqh9j313i0jowj6.jpg" style="zoom:60%">
 >
 > ThreadPoolExecutor的构造方法如下：
 >
@@ -805,7 +805,7 @@ public class ThreadSafe extends Thread {
 >
 > 4. 当一个线程无事可做，超过一定的时间（keepAliveTime）时，线程池会判断，如果当前运行的线程数大于 corePoolSize，那么这个线程就被停掉。所以线程池的所有任务完成后，它最终会收缩到 corePoolSize 的大小。
 >
-> <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk4ds9m8l3j312c0ksjut.jpg" style="zoom:60%">
+> <img src="img/0081Kckwgy1gk4ds9m8l3j312c0ksjut.jpg" style="zoom:60%">
 
 #### 14. Java阻塞队列原理
 
@@ -813,11 +813,11 @@ public class ThreadSafe extends Thread {
 >
 > 1. 当队列中没有数据的情况下，消费者端的所有线程都会被自动阻塞（挂起），直到有数据放入队列。
 >
->    <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk4e18il03j30ck0bw0t7.jpg" style="zoom:50%">
+>    <img src="img/0081Kckwgy1gk4e18il03j30ck0bw0t7.jpg" style="zoom:50%">
 >
 > 2. 当队列中填满数据的情况下，生产者端的所有线程都会被自动阻塞（挂起），直到队列中有空的位置，线程被自动唤醒。
 >
->    <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk4e2fzcchj30gc0bkq3l.jpg" style="zoom:50%">
+>    <img src="img/0081Kckwgy1gk4e2fzcchj30gc0bkq3l.jpg" style="zoom:50%">
 
 ##### 14.1 阻塞队列的主要方法
 
@@ -860,7 +860,7 @@ public class ThreadSafe extends Thread {
 
 ##### 14.2 Java中的阻塞队列
 
-> <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk4rebu8zsj315809yt97.jpg" style="zoom:60%">
+> <img src="img/0081Kckwgy1gk4rebu8zsj315809yt97.jpg" style="zoom:60%">
 >
 > 1. ArrayBlockingQueue ：由数组结构组成的有界阻塞队列。
 >
@@ -1059,7 +1059,7 @@ public class ThreadSafe extends Thread {
 >
 > 在访问 volatile 变量时不会执行加锁操作，因此也就不会使执行线程阻塞，因此 volatile 变量是一种比 sychronized 关键字更轻量级的同步机制。==volatile 适合这种场景：一个变量被多个线程共享，线程直接给这个变量赋值==。
 >
-> <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk4s90u7doj30i60gaq38.jpg" style="zoom:50%">
+> <img src="img/0081Kckwgy1gk4s90u7doj30i60gaq38.jpg" style="zoom:50%">
 >
 > 当对非 volatile 变量进行读写的时候，每个线程先从内存拷贝变量到 CPU 缓存中。如果计算机有多个 CPU，每个线程可能在不同的 CPU 上被处理，这意味着每个线程可以拷贝到不同的 CPU cache 中。而声明变量是 volatile 的，JVM 保证了每次读变量都从内存中读，跳过 CPU cache 这一步。
 
@@ -1164,7 +1164,7 @@ public class ThreadSafe extends Thread {
 >
 > 3. ThreadLocalMap 其实就是线程里面的一个属性，它在 Thread 类中定义ThreadLocal.ThreadLocalMap threadLocals = null;
 >
-> <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk4sin6ivbj30ie0ko75l.jpg" style="zoom:50%">
+> <img src="img/0081Kckwgy1gk4sin6ivbj30ie0ko75l.jpg" style="zoom:50%">
 
 > 使用场景：
 >
@@ -1236,7 +1236,7 @@ public class ThreadSafe extends Thread {
 >
 > ConcurrentHashMap 是由 Segment 数组结构和 HashEntry 数组结构组成。Segment 是一种可重入锁 ReentrantLock，在 ConcurrentHashMap 里扮演锁的角色，HashEntry 则用于存储键值对数据。一个 ConcurrentHashMap 里包含一个 Segment 数组，Segment 的结构和 HashMap类似，是一种数组和链表结构，一个 Segment 里包含一个 HashEntry 数组，每个 HashEntry 是一个链表结构的元素，==每个 Segment 守护一个 HashEntry 数组里的元素，当对 HashEntry 数组的数据进行修改时，必须首先获得它对应的 Segment 锁==。
 >
-> <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk4sr00fwzj30x00h2tau.jpg" style="zoom:40%">
+> <img src="img/0081Kckwgy1gk4sr00fwzj30x00h2tau.jpg" style="zoom:40%">
 
 #### 21. Java中用到的线程调度
 
@@ -1248,7 +1248,7 @@ public class ThreadSafe extends Thread {
 
 > 协同式调度指某一线程执行完后主动通知系统切换到另一线程上执行，这种模式就像接力赛一样，一个人跑完自己的路程就把接力棒交接给下一个人，下个人继续往下跑。线程的执行时间由线程本身控制，线程切换可以预知，不存在多线程同步问题，但它有一个致命弱点：如果一个线程编写有问题，运行到一半就一直堵塞，那么可能导致整个系统崩溃。
 >
-> <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk4st50lhlj30z40kowj2.jpg" style="zoom:50%">
+> <img src="img/0081Kckwgy1gk4st50lhlj30z40kowj2.jpg" style="zoom:50%">
 
 ##### 21.3 JVM的线程调度实现（抢占式调度）
 
@@ -1290,7 +1290,7 @@ public class ThreadSafe extends Thread {
 >
 > 在批处理系统中，短作业优先算法是一种比较好的算法，其主要的不足之处是长作业的运行得不到保证。如果我们能为每个作业引入前面所述的动态优先权，并使作业的优先级随着等待时间的增加而以速率 a 提高，则长作业在等待一定的时间后，必然有机会分配到处理机。该优先权的变化规律可描述为：
 >
-> <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk4szl9ebpj313c04w0v0.jpg" style="zoom:50%">
+> <img src="img/0081Kckwgy1gk4szl9ebpj313c04w0v0.jpg" style="zoom:50%">
 >
 > 1. 如果作业的等待时间相同，则要求服务的时间愈短，其优先权愈高，因而该算法有利于短作业。
 > 2. 当要求服务的时间相同时，作业的优先权决定于其等待时间，等待时间愈长，其优先权愈高，因而它实现的是先来先服务。
@@ -1346,7 +1346,7 @@ public class ThreadSafe extends Thread {
 >
 > getAndIncrement 采用了 CAS 操作，每次从内存中读取数据然后将此数据和+1 后的结果进行CAS 操作，如果成功就返回结果，否则重试直到成功为止。而 compareAndSet 利用 JNI 来完成CPU 指令的操作。
 >
-> <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk4tgkcontj30n60jowft.jpg" style="zoom:50%">
+> <img src="img/0081Kckwgy1gk4tgkcontj30n60jowft.jpg" style="zoom:50%">
 
 ##### 23.3 ABA问题
 
@@ -1360,7 +1360,7 @@ public class ThreadSafe extends Thread {
 
 > AbstractQueuedSynchronizer 类如其名，抽象的队列式的同步器，==AQS 定义了一套多线程访问共享资源的同步器框架==，许多同步类实现都依赖于它，如常用的ReentrantLock/Semaphore/CountDownLatch。
 >
-> <img src="https://tva1.sinaimg.cn/large/0081Kckwgy1gk4tprilpcj30xs0egjrt.jpg" style="zoom:50%">
+> <img src="img/0081Kckwgy1gk4tprilpcj30xs0egjrt.jpg" style="zoom:50%">
 >
 > 它维护了一个 volatile int state（代表共享资源）和一个 FIFO 线程等待队列（多线程争用资源被阻塞时会进入此队列）。这里 volatile 是核心关键词，具体 volatile 的语义，在此不述。state 的访问方式有三种:
 >
