@@ -81,19 +81,58 @@ Java的大数类位于java.math包下：常用的 `BigInteger` 和 `BigDecimal`�
 
 #### 3.1 BigDecimal初始化
 
+```java
+BigDecimal num12 = new BigDecimal("0.005");
+BigDecimal num22 = new BigDecimal("1000000");
+```
 
+**禁止使用构造方法BigDecimal(double)**的方式把double值转化为BigDecimal对象。（反编译出的字节码文件显示每次循环都会new出一个StringBuilder对象，然后进行append操作，最后通过toString方法返回String对象，造成内存资源浪费。）
 
+#### 3.2 加减乘除
 
+```java
+// 加
+BigDecimal result1 = num1.add(num2);
 
+// 减
+BigDecimal result2 = num1.subtract(num2);
 
+// 乘
+BigDecimal result3 = num1.multiply(num2);
 
+// 绝对值
+BigDecimal result4 = num3.abs();
 
+// 除法
+BigDecimal result5 = num2.divide(num1, 20, BigDecimal.ROUND_HALF_UP);
+```
 
+#### 3.3 注意点
 
+使用BigDecimal类构造方法传入double类型时，计算的结果也是不精确的！
 
+因为不是所有的浮点数都能够被精确的表示成一个double 类型值，有些浮点数值不能够被精确的表示成 double 类型值，因此它会被表示成与它最接近的 double 类型的值。必须改用传入String的构造方法。
 
+#### 3.4 除法divide()参数
 
+使用除法函数的时候要设置各种参数，要精确的小数位和摄入模式，不然会出现报错：
 
+```java
+public BigDecimal divide(BigDecimal divisor, int scale, int roundingMode)
+```
 
+除数，精确小数位，舍入模式
 
+#### 3.5 8种舍入模式
+
+| 舍入模式                     | 说明                                                         |
+| ---------------------------- | ------------------------------------------------------------ |
+| BigDecimal.ROUND_UP          | 始终对非零舍弃部分前面的数字加 1。注意，此舍入模式始终不会减少计算值的绝对值。 |
+| BigDecimal.ROUND_DOWN        | 从不对舍弃部分前面的数字加 1（即截尾）。注意，此舍入模式始终不会增加计算值的绝对值。 |
+| BigDecimal.ROUND_CEILING     | 如果结果为正，则舍入行为类似于 RoundingMode.UP；如果结果为负，则舍入行为类似于RoundingMode.DOWN。注意，此舍入模式始终不会减少计算值。 |
+| BigDecimal.ROUND_FLOOR       | 如果结果为正，则舍入行为类似于 RoundingMode.DOWN；如果结果为负，则舍入行为类似于RoundingMode.UP。注意，此舍入模式始终不会增加计算值。 |
+| BigDecimal.ROUND_HALF_UP     | 如果被舍弃部分 >= 0.5，则舍入行为同 RoundingMode.UP；否则舍入行为同RoundingMode.DOWN。注意，此舍入模式就是通常学校里讲的四舍五入。 |
+| BigDecimal.ROUND_HALF_DOWN   | 如果被舍弃部分 > 0.5，则舍入行为同 RoundingMode.UP；否则舍入行为同RoundingMode.DOWN。注意，此舍入模式就是通常讲的五舍六入。 |
+| BigDecimal.ROUND_HALF_EVEN   | 如果舍弃部分左边的数字为奇数，则舍入行为同 RoundingMode.HALF_UP；如果为偶数，则舍入行为同RoundingMode.HALF_DOWN。注意，在重复进行一系列计算时，根据统计学，此舍入模式可以在统计上将累加错误减到最小。此舍入模式也称为“银行家舍入法”，主要在美国使用。此舍入模式类似于 Java 中对float 和double 算法使用的舍入策略。 |
+| BigDecimal.ROUND_UNNECESSARY | 计算结果是精确的，不需要舍入，否则抛出 ArithmeticException。 |
 
