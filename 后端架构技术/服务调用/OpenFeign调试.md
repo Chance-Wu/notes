@@ -38,7 +38,7 @@ public void registerBeanDefinitions(AnnotationMetadata metadata,
 
 调试发现metadata就是主启动类的信息：
 
-![image-20220608094451246](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/image-20220608094451246.png)
+![image-20220608094451246](img/image-20220608094451246.png)
 
 先跟踪第一个方法：==registerDefaultConfiguration(metadata, registry);==
 
@@ -163,30 +163,30 @@ public void registerFeignClients(AnnotationMetadata metadata,
 >
 > 2. 获取要扫描的包路径：basePackages = getBasePackages(metadata);
 >
->    ![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200526154449851-379401932.png)
+>    ![img](img/1365950-20200526154449851-379401932.png)
 >
 > 3. 遍历包名获取候选的带有FeignClient注解的类的信息 `Set<BeanDefinition> candidateComponents = scanner.findCandidateComponents(basePackage);`
 >
->    ![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200526163726579-1469328701.png)
+>    ![img](img/1365950-20200526163726579-1469328701.png)
 >
 >    因为扫描器之前加了有个注解过滤器，这里isCandidateComponent(metadataReader)的逻辑是使用注解过滤器来过滤出带有FeignClient注解的类。
 >
->    ![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200526164008297-65241780.png)
+>    ![img](img/1365950-20200526164008297-65241780.png)
 >
 > 4. 遍历扫描到的BeanDefinition，向ioc容器中注册对应的bean，这里每个带有@FeignClient的类都会注册2个bean。
 >
->    ![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200526164508576-770195555.png)
+>    ![img](img/1365950-20200526164508576-770195555.png)
 >
 >    registerClientConfiguration(registry, name,attributes.get("configuration")); 向容器中注册了name=product.feignClientSpecification 类型feignClientSpecification的bean
 >
 >    重点是： `registerFeignClient(registry, annotationMetadata, attributes);`方法
 >
->    ![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200526165316175-893622153.png)
+>    ![img](img/1365950-20200526165316175-893622153.png)
 >
 >     所以，该方法向spring容器注入的bean，名字为：com.forezp.client.ProviderClient，类型为==FeignClientFactoryBean==，而FactoryBean都会提供一个getObject方法获取对应的实例
 >
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200526172820932-1762044602.png)
+![img](img/1365950-20200526172820932-1762044602.png)
 
 ### springboot自动装配机制
 
@@ -194,27 +194,27 @@ public void registerFeignClients(AnnotationMetadata metadata,
 
 springboot启动时会加载类路径下**/META-INF/spring.factories**中key为`org.springframework.boot.autoconfigure.EnableAutoConfiguration`的类。
 
-![image-20220609165001071](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/image-20220609165001071.png)
+![image-20220609165001071](img/image-20220609165001071.png)
 
-![image-20220609165435729](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/image-20220609165435729.png)
+![image-20220609165435729](img/image-20220609165435729.png)
 
 有四个相关配置类会被加载，关注 `FeignRibbonClientAutoConfiguration` 和 `FeignAutoConfiguration`。
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200526175522397-1838922478.png)
+![img](img/1365950-20200526175522397-1838922478.png)
 
 再看看DefaultFeignLoadBalancedConfiguration这个类：
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200526175741400-1768409166.png)
+![img](img/1365950-20200526175741400-1768409166.png)
 
 之后看看这个bean: FeignAutoConfiguration
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200526180003166-91113935.png)
+![img](img/1365950-20200526180003166-91113935.png)
 
 #### 自动装配机制注入的bean
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200526181141287-1353391899.png)
+![img](img/1365950-20200526181141287-1353391899.png)
 
-![1365950-20200526181237761-375257599](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200526181237761-375257599.png)
+![1365950-20200526181237761-375257599](img/1365950-20200526181237761-375257599.png)
 
 
 
@@ -473,11 +473,11 @@ public class FeignContext extends NamedContextFactory<FeignClientSpecification> 
 
 FeignContext创建时调用了父类的有参构造器
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200527111416030-2049294024.png)
+![img](img/1365950-20200527111416030-2049294024.png)
 
 此时再回到，通过服务名称获取子容器的方法，获取不到就创建一个子容器：
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200527112327650-71920523.png)
+![img](img/1365950-20200527112327650-71920523.png)
 
 由图可知，子容器注入了一个FeignClientsConfiguration配置类，该类是由FeignContext初始化时，调用父类有参构造器传入的，所以分析下该配置类：
 
@@ -562,20 +562,20 @@ public class FeignClientsConfiguration {
 
 此时我们再看看父容器和子容器注入的主要类：
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200527114516898-1274808589.png)
+![img](img/1365950-20200527114516898-1274808589.png)
 
 有了上面的分析，我们回到之前的方法继续分析：
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200527114748217-598895779.png)
+![img](img/1365950-20200527114748217-598895779.png)
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200527115659510-1807179178.png)
+![img](img/1365950-20200527115659510-1807179178.png)
 
 我们看到该方法：configureUsingProperties(properties.getConfig().get(this.contextId),builder);，通过一个ContextId也就是服务名，我这里是product，获取该服务的专有配置，说明每一个服务都可以拥有自己的特殊配置；
 看看这个FeignClientProperties类：
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200527120702728-471820477.png)
+![img](img/1365950-20200527120702728-471820477.png)
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200527115813637-592059065.png)
+![img](img/1365950-20200527115813637-592059065.png)
 
 再次回到FactoryBean的getObject()方法进行分析：
 
@@ -615,7 +615,7 @@ protected <T> T loadBalance(Feign.Builder builder, FeignContext context,
 
 上述代码中可以看出，从容器中获取了一个client和targeter，这2个bean是在父容器中获取的。
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200527121546363-443752105.png)
+![img](img/1365950-20200527121546363-443752105.png)
 
 继续跟进：
 
@@ -667,7 +667,7 @@ public Feign build() {
 
 可见是调用了ReflectiveFeign的newInstance(target);方法。
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200527141214470-194594823.png)
+![img](img/1365950-20200527141214470-194594823.png)
 
 至此，我们可以发现，最终是调用了JDK动态代理机制来生成代理类，下面再来分析上面2个方法：
 
@@ -774,7 +774,7 @@ protected MethodMetadata parseAndValidateMetadata(Class<?> targetType, Method me
 
 分析对方法上的处理：
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200527143204770-836017566.png)
+![img](img/1365950-20200527143204770-836017566.png)
 
 之后我们再分析`InvocationHandler handler = factory.create(target, methodToHandler);`方法：
 
@@ -797,7 +797,7 @@ FeignInvocationHandler(Target target, Map<Method, MethodHandler> dispatch) {
 
 对上述分析做个总结：
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200527145706199-1343236557.png)
+![img](img/1365950-20200527145706199-1343236557.png)
 
 
 
@@ -946,7 +946,7 @@ private Observable<Server> selectServer() {
 }
 ```
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200527152727101-1205452518.png)
+![img](img/1365950-20200527152727101-1205452518.png)
 
 上图是ribbon通过负载均衡获取单个服务实例的过程。
 
@@ -1014,4 +1014,4 @@ public interface ProviderClient {
 }
 ```
 
-![img](OpenFeign%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.assets/1365950-20200527154109772-1871052808.png)
+![img](img/1365950-20200527154109772-1871052808.png)
