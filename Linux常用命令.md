@@ -1,3 +1,34 @@
+### kill
+
+---
+
+用于删除执行中的程序或工作。
+
+kill 可将指定的信息送至程序。预设的信息为 SIGTERM(15)，可将指定程序终止。若仍无法终止该程序，可使用 SIGKILL(9) 信息尝试强制删除程序。程序或工作的编号可利用 ps 指令或 jobs 指令查看。
+
+```shell
+kill [-s <信息名称或编号>][程序]　或　kill [-l <信息编号>]
+```
+
+- -l <信息编号> 　若不加<信息编号>选项，则 -l 参数会列出全部的信息名称。
+- -s <信息名称或编号> 　指定要送出的信息。
+- [程序] 　[程序]可以是程序的PID或是PGID，也可以是工作编号。
+
+```shell
+$ kill -l
+HUP INT QUIT ILL TRAP ABRT EMT FPE KILL BUS SEGV SYS PIPE ALRM TERM URG STOP TSTP CONT CHLD TTIN TTOU IO XCPU XFSZ VTALRM PROF WINCH INFO USR1 USR2
+```
+
+最常用的信号是：
+
+- 1 (HUP)：重新加载进程。
+- 9 (KILL)：杀死一个进程。
+- 15 (TERM)：正常停止一个进程。
+
+>linux 的 **kill** 命令是向进程发送信号，**kill** 不是杀死的意思，**-9** 表示无条件退出，但由进程自行决定是否退出，这就是为什么 **kill -9** 终止不了系统进程和守护进程的原因。
+
+
+
 ### more
 
 ---
@@ -44,7 +75,7 @@
 
 
 
-### 查看进程有多少存活线程
+### 查看进程下的存活线程
 
 ---
 
