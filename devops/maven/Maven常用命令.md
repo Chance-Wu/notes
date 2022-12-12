@@ -31,3 +31,12 @@
 ---
 
 >jar tvf target/project-name-0.0.1-SNAPSHOT.jar
+
+
+
+#### 5. 下载源码
+
+---
+
+> mvn dependency:resolve -Dclassifier=sources
+
