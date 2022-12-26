@@ -132,8 +132,6 @@ public class Client {
 #### 2.2 服务器代码
 
 ```java
-
-
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -196,35 +194,69 @@ public class User implements Serializable, IUserService {
       '}';
   }
 }
-
-
 ```
 
+```java
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+/**
+ * Server模拟服务器，接受Socket的信息，找到方法，执行方法，并且返回
+ */
+public class Server {
+  public static void main(String[] args) throws Exception {
+    ServerSocket server = new ServerSocket(8088);// 用socket模拟客户端访问服务器的方法
+    while(true){
+      Socket client = server.accept();
+      System.out.println(client);
+      process(client);// 服务器执行服务，访问方法
+      client.close();
+      break;
+    }
+  }
+
+  static void process(Socket socket) throws Exception {
+    ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+    ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+
+    String className = ois.readUTF();
+    String methodName = ois.readUTF();
+    Class[] parameterTypes = (Class[]) ois.readObject();
+    Object[] parameters = (Object[]) ois.readObject();// 读取客户端发送的信息
+
+    Class myclass = User.class;// 模拟注册表查找或者 Spring 的 bean 注入找到类
+    Method method = myclass.getMethod(methodName, parameterTypes);// 获取方法
+
+    Object o = method.invoke(myclass.newInstance(), parameters);// 执行方法
+    oos.writeObject(o);
+    oos.flush();// 把结果发送到客户端
+  }
+}
+```
+
+运行的时候，只需要先运行 Server，再运行 Client 就行。
+
+现在，我们来回答文章开头的问题：
+
+这里需有个问题，为什么服务器A查询B的数据，不是一次 http 请求就可以解决了吗？就像 web 浏览器和服务器之间的 http 请求一样，为什么还说是一次远程方法调用？
+
+看了上述的代码演示，可以发现 http 请求只是 RPC 中网络请求的工具，**RPC 强调的是用动态代理去实现一个封装的、易修改扩展的远程访问方式**，http 请求只是 RPC 实现网络请求的部分。换句话说，RPC 不仅仅是一次网络请求，更类似于一种设计模式。
 
 
 
+### 三、RPC需要考虑的问题
 
+---
 
+上述的 Demo 只是RPC原理的演示，要实现RPC，还需要考虑以下问题：
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- 中间的网络请求所用的网络协议，不止可以使用 http 协议；
+- 网络请求的延迟；
+- 序列化和反序列化的工具，序列化的效率影响速度和网络传输数据量的大小；
+- 怎么做到平台无关和语言无关，可以方便的跨语言跨平台去远程调用方法；
+- 当服务发生变更时怎么处理，一般用 ZooKeeper。
