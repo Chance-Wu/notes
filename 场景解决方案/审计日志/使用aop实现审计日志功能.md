@@ -6,18 +6,9 @@
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface AuditLogAspect {
-	/**操作内容*/
-  String operation();
-  
-  /**操作类型*/
-  String oerationType();
-  
-  /**日志类型*/
-  String logType();
-  
-  /**应用类型*/
-  String appType();
+public @interface AuditLog {
+  /**菜单名称*/
+  String menuName() default "";
 }
 ```
 
@@ -28,91 +19,96 @@ public @interface AuditLogAspect {
 ---
 
 ```java
+/**
+ * @Description: AuditLogAspect
+ * @Author: wuchenyang
+ * @Date: 2022-12-28 15:12
+ * @Version 1.0
+ */
+@Order(-10)
 @Aspect
 @Component
-public class VinceAspectj {
+public class AuditLogAspect {
 
-  private Logger logger = LoggerFactory.getLogger(VinceAspectj.class);
-  @Autowired private AuditLogService auditLogService;
+  public static final Logger logger = LoggerFactory.getLogger(AuditLogAspect.class);
 
-  //  @Pointcut("execution(public * com.my.provider.*.*.service.*.*(..))")
-  //使用自定义注解类的，进入切面  @Pointcut("@annotation(com.my.provider.system.annotation.AuditLogAspect)")
-  public void auditLogPointCut() {}
+  public static final int GENERAL_DOC = 3;
 
-  @AfterReturning(returning = "tag", pointcut = "auditLogPointCut()")
-  public void auditLog(JoinPoint joinPoint, Object tag) {
-    MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-    Method method = signature.getMethod();
-    Object[] agrs = joinPoint.getArgs();
-    String name = null;
-    // 如果传参包含类且包含name属性 取出name的内容
-    for (Object object : agrs) {
-      if (object == null) {
-        continue;
-      }
-      Integer nameIndex = object.toString().indexOf("name=");
-      if (nameIndex > 0) {
-        name = object.toString().substring(nameIndex + "name=".length()).split(",")[0];
+  @Resource
+  private RedisService redisService;
+
+  @Pointcut("execution(* com.ibm.scrm.operation.web..*Controller.*(..))) and @annotation(com.ibm.scrm.operation.annotation.AuditLog)")
+  public void auditLogPointCut() {
+    // do nothing
+  }
+
+  @Around(value = "auditLogPointCut()")
+  public Object aroundMethod(ProceedingJoinPoint pjp) throws Throwable {
+    Date searchDateTime = new Date();
+    ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+    HttpServletRequest request = attributes.getRequest();
+    MethodSignature signature = (MethodSignature) pjp.getSignature();
+
+    AuditLog auditLogAnnotation = signature.getMethod().getAnnotation(AuditLog.class);
+    String params = "";
+    if (auditLogAnnotation != null) {
+      Object[] agrs = pjp.getArgs();
+      // POST参数通过jp.getArgs()获取
+      if (("POST").equals(request.getMethod())) {
+        params = JSON.toJSONString(JSON.toJSONString(agrs[0]));
+      } else {
+        //GET参数使用getParameterMap获取参数
+        Map<String, String[]> parameterMap = request.getParameterMap();
+        StringBuilder getParam = new StringBuilder();
+        for (String key : parameterMap.keySet()) {
+          String[] value = parameterMap.get(key);
+          getParam.append(key + ":" + value[0] + ";");
+        }
+        params = getParam.toString();
       }
     }
-    AuditLogAspect auditLogAspect = signature.getMethod().getAnnotation(AuditLogAspect.class);
-    // 没有添加注释的不写入日志
-    if (auditLogAspect == null) {
-      return;
-    } else {
-      String userId = ApiUtils.currentUserId();//当前登录的机构ID。使用自己项目的
-      String operation = auditLogAspect.operation();
-      if (name != null) {
-        operation = operation + ",名称为:" + name;
+    Object resultObj = pjp.proceed();
+
+    if (auditLogAnnotation != null) {
+      String brandCode = "";
+      String operationUser = "";
+      //获取当前登录用户信息
+      User user = SecurityContext.getUserPrincipal();
+      if (null != user) {
+        brandCode = user.getOrgCode();
+        operationUser = user.getName();
       }
-      String logType = auditLogAspect.logType();
-      String appType = auditLogAspect.appType();
-      String operationType = auditLogAspect.operationType();
-      //保存日志内容，自行替换自己的保存业务
-      auditLogService.saveOperation(userId, operation, operationType, logType, appType);
+      Integer searchResultNum = getResultNum(resultObj);
+      String operationUserClientIp = IPUtils.getIpAddr(request);
+      DocumentLogVo documentLogVo = DocumentLogVo.builder()
+        .id(redisService.generateEsSequence())
+        .type(GENERAL_DOC)
+        .brandCode(brandCode)
+        .menuName(auditLogAnnotation.menuName())
+        .searchConditions(params)
+        .searchDateTime(searchDateTime)
+        .operationUser(operationUser)
+        .searchResultNum(searchResultNum)
+        .operationUserClientIp(operationUserClientIp)
+        .createTime(new Date())
+        .build();
+      EsUtils.addAuditLog(documentLogVo);
     }
+    return resultObj;
   }
-}`
 
-```
-
-
-
-### 三、service业务类
-
----
-
-```java
-@Service
-public class UserService extends BaseService<UserMapper, User> {
-  @AuditLogAspect(operation = "添加用户", operationType = "处理", logType = "权限信息", appType = "4")
-  public boolean insertUser(UserInsertReq userInsertReq) {
-    //添加用户代码
+  /**
+   * 获取结果数量
+   *
+   * @param resultObj
+   * @return
+   */
+  private Integer getResultNum(Object resultObj) {
+    ResponseBean<T> responseBean = JSON.parseObject(JSON.toJSONString(resultObj), ResponseBean.class);
+    String jsonString = JSON.toJSONString(responseBean.getResponseBody());
+    Map<String, Object> map = JSON.parseObject(jsonString, Map.class);
+    return (Integer) map.get("total");
   }
-}
-```
 
-
-
-### 四、controller控制器
-
----
-
-```java
-@Api(tags = {"用户服务"})
-@RestController
-@RequestMapping(value = "/user", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-@Validated
-@Transactional
-public class UserRestController extends SuperController {
-  @Autowired private UserService userService;
-
-  @ApiOperation("添加用户")
-  @PostMapping("/insertUser")
-  public ApiResponses<Boolean> insertUser(
-    @RequestBody @Validated(UserInsertReq.Create.class) UserInsertReq userInsertReq) {
-
-    return success(userService.insertUser(userInsertReq));
-  }
 }
 ```
