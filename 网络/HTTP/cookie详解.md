@@ -84,55 +84,14 @@ setPath(String uri)：设置cookie的作用域。
 
 
 
-### Cookie应用实例
+### Cookie安全性
 
 ---
 
+通常 cookie 信息都是使用HTTP连接传递数据，这种传递方式很容易被查看，在控制台下运行document.cookie,一目了然；所以 cookie 存储的信息容易被窃取。假如 cookie 中所传递的内容比较重要，那么就要求使用加密的数据传输。所以 cookie 的这个属性的名称是“secure”，默认的值为空。如果一个 cookie 的属性为secure，那么它与服务器之间就通过HTTPS或者其它安全协议传递数据。语法如下： 
 
+> document.cookie = “username=Darren;secure” 
 
+把cookie设置为secure，只保证 cookie 与服务器之间的数据传输过程加密，而保存在本地的 cookie文件并不加密。如果想让本地cookie也加密，得自己加密数据。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+注： 就算设置了secure 属性也并不代表他人不能看到你机器本地保存的 cookie 信息，所以说到底，别把重要信息放cookie就对了。
