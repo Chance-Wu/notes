@@ -1,4 +1,4 @@
-#### 1. 简介
+### 一、简介
 
 ---
 
@@ -32,13 +32,11 @@ Consul是HashiCrop公司推出的开源工具。
 
 
 
-#### 2. 安装Consul服务端
+### 二、安装Consul服务端
 
 ---
 
-Consul和Eureka不同，Eureka只需要在项目中加入服务端依赖，就可以作为服务端使用；Consul需要下载并单独安装。
-
->1. 下载地址：[https://www.consul.io/downloads.html](https://links.jianshu.com/go?to=https%3A%2F%2Fwww.consul.io%2Fdownloads.html)
+>1. [下载](https://developer.hashicorp.com/consul/install)
 >
 >2. 上传到服务器
 >
@@ -48,23 +46,21 @@ Consul和Eureka不同，Eureka只需要在项目中加入服务端依赖，就�
 
 
 
-#### 3. 启动Consul服务端
+### 三、启动Consul服务端
 
 ---
 
-##### 3.1 开发模式启动单节点
+#### 3.1 开发模式启动单节点
 
-1. `consul agent -dev` -ui -client 0.0.0.0启动命令，添加红色部分才能被外网访问，并有web页面；
-2. localhost:8500打开管理页面；
+1. `consul agent -dev -ui -client 0.0.0.0`；
+2. [打开管理页面](localhost:8500)；
 3. `curl localhost:8500/v1/catalog/nodes`查看consul节点。
 
-
-
-##### 3.2 集群模式启动
+#### 3.2 集群模式启动
 
 1. 创建4台虚拟机；
 
-2. 启动集群，三个service和一个client
+2. 启动集群，三个service和一个client。
 
    ```shell
    consul agent -server -bootstrap-expect 3 
@@ -118,11 +114,11 @@ Consul和Eureka不同，Eureka只需要在项目中加入服务端依赖，就�
 
 
 
-#### 4. 服务注册
+### 四、服务注册
 
 ---
 
-##### 4.1 通过HTTP API注册服务
+#### 4.1 通过HTTP API注册服务
 
 1. 注册一个ID为"test001"，name为"test"的服务：
 
@@ -140,7 +136,7 @@ Consul和Eureka不同，Eureka只需要在项目中加入服务端依赖，就�
    http://localhost:8500打开管理页面查看已注册的服务
    ```
 
-##### 4.2 通过项目注册服务
+#### 4.2 通过项目注册服务
 
 添加maven依赖：
 
@@ -185,7 +181,7 @@ spring:
 
 
 
-#### 5. 停止agent
+### 五、停止agent
 
 ---
 
@@ -195,7 +191,7 @@ spring:
 
 
 
-#### 6. 更新服务
+### 六、更新服务
 
 ---
 
