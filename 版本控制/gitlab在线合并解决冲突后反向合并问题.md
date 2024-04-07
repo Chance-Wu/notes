@@ -58,22 +58,3 @@ git log //找到上一个版本的commitID
 git reset --hard HEAD/commitID  //强制回退本地分支到上一个版本
 git push origin HEAD --force 或者 git push -f origin feature //强制回退远程
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
