@@ -1,3 +1,16 @@
+### RESTful风格与HTTP method
+
+---
+
+| 常用HTTP方法 | RESTful风格语义（操作）                     |
+| ------------ | ------------------------------------------- |
+| GET          | 查询、获取数据                              |
+| POST         | 新增、提交数据                              |
+| DELETE       | 删除数据                                    |
+| PUT          | 更新、修改数据                              |
+| HEAD         | 获取HTTP请求头数据                          |
+| OPTIONS      | 判断URL提供的当前API支持哪些HTTP method方法 |
+
 ### 一、简介
 
 ---
@@ -71,6 +84,12 @@ String response3 = responseEntity2.getBody();
 System.out.println(response3);
 ```
 
+getForEntity比getForObject多出来的内容：
+
+- `HttpStatus statusCode = responseEntity.getStatusCode();`获取整体的响应状态信息；
+- `int statusCodeValue = responseEntity.getStatusCodeValue();` 获取响应码值；
+- `HttpHeaders headers = responseEntity.getHeaders();`获取响应头；
+
 #### 2.2 发送POST请求
 
 ```java
@@ -84,6 +103,8 @@ ResponseEntity<User> responseEntity1 = this.restTemplate.postForEntity(uri, user
 RequestEntity<User> requestEntity = RequestEntity.post(new URI(uri)).body(user);
 ResponseEntity<User> responseEntity2 = this.restTemplate.exchange(requestEntity, User.class);
 ```
+
+postForLocation的传参的类型、个数、用法基本都和postForObject()或postForEntity()一致。和前两者的唯一区别在于返回值是一个URI。该URI返回值体现的是：用于提交完成数据之后的页面跳转，或数据提交完成之后的下一步数据操作URI。
 
 #### 2.3 设置HTTP Header
 
@@ -288,7 +309,7 @@ PostDTO postDTO = restTemplate.getForObject(url, PostDTO.class, "posts", 1);
 
 - 另一种使用占位符的形式：
 
-```python
+```java
 String url = "http://jsonplaceholder.typicode.com/{type}/{id}";
 String type = "posts";
 int id = 1;
@@ -297,7 +318,7 @@ PostDTO postDTO = restTemplate.getForObject(url, PostDTO.class, type, id);
 
 - 也可以使用 map 装载参数：
 
-```vhdl
+```java
 String url = "http://jsonplaceholder.typicode.com/{type}/{id}";
 Map<String,Object> map = new HashMap<>();
 map.put("type", "posts");
@@ -307,13 +328,180 @@ PostDTO  postDTO = restTemplate.getForObject(url, PostDTO.class, map);
 
 
 
+### 六、大文件下载
+
+---
+
+- 设置了请求头`APPLICATION_OCTET_STREAM`，表示以流的形式进行数据加载
+-  结合File.copy保证了接收到一部分文件内容，就向磁盘写入一部分内容。而不是全部加载到内存，最后再写入磁盘文件。
+
+```java
+@Test
+void testDownLoadBigFile() throws IOException {
+  // 待下载的文件地址
+  String url = "http://localhost:8888/2020/08/12/028b38f1-3f9b-4088-9bea-1af8c18cd619.png";
+  // 文件保存的本地路径
+  String targetPath = "D:\\data\\local\\splash-down-big.png";
+  //定义请求头的接收类型
+  RequestCallback requestCallback = request -> request.getHeaders().setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
+  //对响应进行流式处理而不是将其全部加载到内存中
+  restTemplate.execute(url, HttpMethod.GET, requestCallback, clientHttpResponse -> {
+    Files.copy(clientHttpResponse.getBody(), Paths.get(targetPath));
+    return null;
+  });
+}
+```
 
 
 
+### 七、RestTemplate自定义异常处理
+
+---
+
+#### 7.1 异常处理的默认实现
+
+- ResponseErrorHandler是RestTemplate请求结果的异常处理器接口
+  - 接口的第一个方法hasError用于判断HttpResponse是否是异常响应（通过状态码）
+  - 接口的第二个方法handleError用于处理异常响应结果（非200状态码段）
+- DefaultResponseErrorHandler是ResponseErrorHandler的默认实现
+
+看看DefaultResponseErrorHandler是如何来处理异常响应的？从HttpResponse解析出Http StatusCode，如果状态码StatusCode为null，就抛出UnknownHttpStatusCodeException异常。
+
+```java
+@Override
+public void handleError(ClientHttpResponse response) throws IOException {
+  HttpStatus statusCode = HttpStatus.resolve(response.getRawStatusCode());
+  if (statusCode == null) {
+    byte[] body = getResponseBody(response);
+    String message = getErrorMessage(response.getRawStatusCode(),
+                                     response.getStatusText(), body, getCharset(response));
+    throw new UnknownHttpStatusCodeException(message,
+                                             response.getRawStatusCode(), response.getStatusText(),
+                                             response.getHeaders(), body, getCharset(response));
+  }
+  handleError(response, statusCode);
+}
+```
+
+如果StatusCode存在，则解析出StatusCode的series，也就是状态码段（除了200段，其他全是异常状态码）,解析规则是StatusCode/100取整。
+
+```java
+public enum Series {
+
+  INFORMATIONAL(1),
+  SUCCESSFUL(2),
+  REDIRECTION(3),
+  CLIENT_ERROR(4),
+  SERVER_ERROR(5);
+}
+```
+
+进一步针对客户端异常和服务端异常进行处理，处理的方法是抛出HttpClientErrorException。
+
+![img](img/1815316-20200814071357392-336603051.png)
+
+#### 7.2 自定义异常处理
+
+自定义异常，实现ResponseErrorHandler 接口。
+
+```java
+public class RestErrorHandler implements ResponseErrorHandler {
+
+  /**
+   * 判断返回结果response是否是异常结果
+   * 主要是去检查response 的HTTP Status
+   * 仿造DefaultResponseErrorHandler实现即可
+   */
+  @Override
+  public boolean hasError(ClientHttpResponse response) throws IOException {
+    int rawStatusCode = response.getRawStatusCode();
+    HttpStatus statusCode = HttpStatus.resolve(rawStatusCode);
+    return (statusCode != null ? statusCode.isError() : hasError(rawStatusCode));
+  }
+
+  protected boolean hasError(int unknownStatusCode) {
+    HttpStatus.Series series = HttpStatus.Series.resolve(unknownStatusCode);
+    return (series == HttpStatus.Series.CLIENT_ERROR || series == HttpStatus.Series.SERVER_ERROR);
+  }
+
+  @Override
+  public void handleError(ClientHttpResponse response) throws IOException {
+    // 里面可以实现你自己遇到了Error进行合理的处理
+    //TODO 将接口请求的异常信息持久化
+  }
+}
+```
+
+最后，将这个自定义的`ResponseErrorHandler`设置到`RestTemplate`中：
+
+```java
+public class MyApplication {
+
+  public static void main(String[] args) {
+    RestTemplate restTemplate = new RestTemplate();
+    restTemplate.setErrorHandler(new CustomResponseErrorHandler());
+
+    // 现在使用这个配置了自定义错误处理器的RestTemplate进行HTTP请求
+    // ...
+  }
+}
+```
 
 
 
+### 八、请求失败自动重试机制
 
+---
+
+自动重试，就是在RestTemplate发送请求得到非200状态结果的时候，间隔一定的时间再次发送n次请求。n次请求都失败之后，最后抛出`HttpClientErrorException`。
+
+#### 8.1 Spring Retry配置生效
+
+通过maven坐标引入spring-retry，spring-retry的实现依赖于面向切面编程，所以引入aspectjweaver。
+
+```xml
+<dependency>
+  <groupId>org.springframework.retry</groupId>
+  <artifactId>spring-retry</artifactId>
+  <version>1.2.5.RELEASE</version>
+</dependency>
+<dependency>
+  <groupId>org.aspectj</groupId>
+  <artifactId>aspectjweaver</artifactId>
+</dependency>
+```
+
+在应用入口启动类上面加上@SpringRetry注解，表示让重试机制生效。
+
+#### 8.2 示例
+
+写一个模拟的业务类RetryService ，在其里面注入RestTemplate 。将正确的请求服务地址由“/posts/1”改成“/postss/1”。服务不存在所以抛出404异常，是为了触发重试机制。
+
+```java
+@Service
+public class RetryService {
+
+
+  @Resource
+  private RestTemplate restTemplate;
+
+  private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+
+  @Retryable(value = RestClientException.class, maxAttempts = 3,
+             backoff = @Backoff(delay = 5000L,multiplier = 2))
+  public HttpStatus testEntity() {
+    System.out.println("发起远程API请求:" + DATE_TIME_FORMATTER.format(LocalDateTime.now()));
+
+    String url = "http://jsonplaceholder.typicode.com/postss/1";
+    ResponseEntity<String> responseEntity
+      = restTemplate.getForEntity(url, String.class);
+
+    return responseEntity.getStatusCode(); // 获取响应码
+  }
+
+}
+```
 
 
 
