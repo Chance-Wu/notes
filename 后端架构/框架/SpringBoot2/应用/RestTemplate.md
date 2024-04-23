@@ -503,25 +503,172 @@ public class RetryService {
 }
 ```
 
+- `@Retryable` 注解的方法在发生异常时会重试，参数说明：
+  - value：当指定异常发生时会进行重试，HttpClientErrorException是RestClientException的子类。
+  - include：和value一样，默认空。如果 exclude也为空时，所有异常都重试
+  - exclude：指定异常不重试，默认空。如果 include也为空时，所有异常都重试
+  - maxAttemps：最大重试次数，默认3
+  - backoff：重试等待策略，默认空
+- `@Backoff` 注解为重试等待的策略，参数说明：
+  - delay：指定重试的延时时间，默认为1000毫秒
+  - multiplier：指定延迟的倍数，比如设置delay=5000，multiplier=2时，第一次重试为5秒后，第二次为10(5x2)秒，第三次为20(10x2)秒。
 
 
 
+### 九、HTTP Basic Auth 认证
+
+---
+
+#### 9.1 HttpBasic认证原理说明
+
+![img](img/1815316-20200816135454336-2109209733.png)
+
+- 首先，HttpBasic模式要求传输的用户名密码使用Base64模式进行加密。如果用户名是 `"admin"` ，密码是“ admin”，则将字符串`"admin:admin"`使用Base64编码算法加密。加密结果可能是：YWtaW46YWRtaW4=。
+- 然后，在Http请求中使用authorization作为一个HTTP请求头Header name，“Basic YWtaW46YWRtaW4=“作为Header的值，发送给服务端。（注意这里使用**Basic+空格+加密串**）
+- 服务器在收到这样的请求时，到达BasicAuthenticationFilter过滤器，将提取“authorization”的Header值，并使用用于验证用户身份的相同算法Base64进行解码。
+- 解码结果与登录验证的用户名密码匹配，匹配成功则可以继续过滤器后续的访问。
+
+#### 9.2 请求头方式携带认证信息
+
+在HTTP请求头中携带Basic Auth认证的用户名和密码，具体实现参考下文代码注释：
+
+```java
+@SpringBootTest
+class BasicAuthTests {
+
+  @Resource
+  private RestTemplate restTemplate;
+
+  @Test
+  void testBasicAuth() {
+    //该url上携带用户名密码是httpbin网站测试接口的要求，
+    //真实的业务是不需要在url上体现basic auth用户名密码的
+    String url = "http://www.httpbin.org/basic-auth/admin/adminpwd";
+
+    //在请求头信息中携带Basic认证信息(这里才是实际Basic认证传递用户名密码的方式)
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("authorization",
+                "Basic " +
+                Base64.getEncoder()  
+                .encodeToString("admin:adminpwd".getBytes()));
+
+    //发送请求
+    HttpEntity<String> ans = restTemplate
+      .exchange(url,
+                HttpMethod.GET,   //GET请求
+                new HttpEntity<>(null, headers),   //加入headers
+                String.class);  //body响应数据接收类型
+    System.out.println(ans);
+  }
+
+}
+```
+
+#### 9.3 拦截方式
+
+在RestTemplate Bean初始化的时候加入拦截器，以拦截器的方式统一添加Basic认证信息。
+
+```java
+@Configuration
+public class ContextConfig {
+
+  @Bean("OKHttp3")
+  public RestTemplate OKHttp3RestTemplate(){
+    RestTemplate restTemplate = new RestTemplate(getClientHttpRequestFactory());
+    //添加拦截器
+    restTemplate.getInterceptors().add(getCustomInterceptor());
+    return restTemplate;
+  }
+  //实现一个拦截器：使用拦截器为每一个HTTP请求添加Basic Auth认证用户名密码信息
+  private ClientHttpRequestInterceptor getCustomInterceptor() {
+    return (httpRequest, bytes, execution) -> {
+      httpRequest.getHeaders().set("authorization", "Basic " + Base64.getEncoder().encodeToString("admin:adminpwd".getBytes()));
+      return execution.execute(httpRequest, bytes);
+    };
+  }
+
+  private ClientHttpRequestFactory getClientHttpRequestFactory() {
+    int timeout = 100000;
+    OkHttp3ClientHttpRequestFactory clientHttpRequestFactory
+      = new OkHttp3ClientHttpRequestFactory();
+    clientHttpRequestFactory.setConnectTimeout(timeout);
+    return clientHttpRequestFactory;
+  }
+}
+```
+
+#### 9.4 进一步简化
+
+Spring RestTemplate 已经提供了封装好的Basic Auth拦截器，直接使用就可以了，不需要我们自己去实现拦截器。
+
+```java
+@Bean("okHttp3")
+public RestTemplate restTemplate() {
+  RestTemplate restTemplate = new RestTemplate(okHttp3ClientHttpRequestFactory());
+  restTemplate.setErrorHandler(new RestErrorHandler());
+  //添加拦截器
+  restTemplate.getInterceptors().add(new BasicAuthenticationInterceptor("admin","adminpwd"));
+  return new RestTemplate(okHttp3ClientHttpRequestFactory());
+}
+```
+
+下面的方法是在RestTemplate Bean实例化的时候使用RestTemplateBuilder，自带basicAuthentication。所以到这里拦截器也不需要了（实际底层代码实现仍然是拦截器，只是api层面不需要指定拦截器了）。
+
+![img](img/1815316-20200816135455327-1547419331.png)
 
 
 
+### 十、使用代理作为跳板发送请求
 
+---
 
+代理Proxy作为跳板成为服务的直接访问者，代理使用者（真正的客户端）是间接访问服务。这样在服务端看来，每次请求是代理发出的，从代理IP池中一直更换代理发送请求，这样能够降低IP封锁的可能。
 
+![img](img/1815316-20200818063011490-1370968132.png)
 
+作为一个代理使用者，该如何使用RestTemplate发送请求的时候使用代理Proxy。
 
+#### 10.1 搭建一个代理服务器
 
+安装tinyproxy，tinyproxy可以提供代理服务。
 
+```bash
+# 安装tinyproxy 命令
+sudo yum install tinyproxy -y
+```
 
+编辑tinyproxy的配置文件`vim /etc/tinyproxy/tinyproxy.conf`。为该代理配置允许访问的使用者客户端ip，也就是我家的ip，所以这个代理服务只能我用，其他人用不了。
 
+```properties
+# 代理服务端口
+Port 1080
+# 允许哪个客户端使用该代理程序？
+Allow xxx.xxx.xxx.xxx
+```
 
+启动tinyproxy提供代理服务，最好检查一下防火墙是否开放了1080端口。
 
+```bash
+systemctl start tinyproxy.service
+```
 
+#### 10.2 用于测试的服务端
 
+- 要访问的服务端是：`http://www.httpbin.org`，这个网站是提供在线的HTTP访问服务的网站。我们可以用它进行测试。
+- `http://www.httpbin.org/ip`是我们本次要访问的服务，响应结果是访问者的IP。
+
+在家里使用电脑访问这个服务的时候结果如下：
+
+![img](img/1815316-20200818063011794-2023063216.png)
+
+上图没有使用代理，所以返回的是我家的ip。如果我使用代理访问，返回结果应该是proxy代理服务器的ip地址。
+
+#### 10.3 代理使用者RestTemplate
+
+代理服务器的ip是88.99.10.251，tinyproxy代理服务端口1080。下文代码通过SimpleClientHttpRequestFactory设置访问代理。
+
+```java
+```
 
 
 
