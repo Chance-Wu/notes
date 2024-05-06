@@ -2,7 +2,7 @@
 
 
 
-#### 1. 写一个Feign
+### 一、写一个Feign
 
 ---
 
@@ -30,7 +30,7 @@ public class FeignConfig {
 }
 ```
 
-查看FeignClient的源码，其代码如下：
+查看FeignClient注解的源码，其代码如下：
 
 ```java
 @Target(ElementType.TYPE)
@@ -70,18 +70,49 @@ public @interface FeignClient {
 
 
 
-#### 2. FeignClient的配置
+### 二、FeignClient的配置
 
 ---
 
-##### 2.1 默认的配置类 FeignClientsConfiguration
+#### 2.1 默认的配置类 FeignClientsConfiguration
 
-这个类在spring-cloud-openfeign-core的jar包下，打开这个类，可以发现它是一个配置类，注入了很多的相关配置的bean，包括`feignRetryer`、`FeignLoggerFactory`、`FormattingConversionService`等，其中还包括了`Decoder`、`Encoder`、`Contract`，如果这三个bean在没有注入的情况下，会自动注入默认的配置。
+这个类在spring-cloud-openfeign-core的jar包下，打开这个类，可以发现它是一个配置类，注入了很多的相关配置的bean，包括`Retryer`、`FeignLoggerFactory`、`FormattingConversionService`等，其中还包括了`Decoder`、`Encoder`、`Contract`，如果这三个bean在没有注入的情况下，会自动注入默认的配置。
 
 - Decoder feignDecoder：ResponseEntityDecoder(这是对SpringDecoder的封装)
+
+  ```java
+  @Bean
+  @ConditionalOnMissingBean
+  public Decoder feignDecoder() {
+    return new OptionalDecoder(new ResponseEntityDecoder(new SpringDecoder(this.messageConverters)));
+  }
+  ```
+
 - Encoder feignEncoder：SpringEncoder
+
+  ```java
+  @Bean
+  @ConditionalOnMissingBean
+  @ConditionalOnMissingClass({"org.springframework.data.domain.Pageable"})
+  public Encoder feignEncoder(ObjectProvider<AbstractFormWriter> formWriterProvider) {
+    return this.springEncoder(formWriterProvider);
+  }
+  ```
+
 - Logger feignLogger：Slf4jLogger
+
+  ```java
+  @Bean
+  @ConditionalOnMissingBean({FeignLoggerFactory.class})
+  public FeignLoggerFactory feignLoggerFactory() {
+    return new DefaultFeignLoggerFactory(this.logger);
+  }
+  ```
+
+  
+
 - Contract feignContract：SpringMvcContract
+
 - Feign.Builder feignBuilder：HystrixFeign.Builder
 
 代码如下：
@@ -163,7 +194,7 @@ public class FeignClientsConfiguration {
 }
 ```
 
-##### 2.2 重写配置
+#### 2.2 重写配置
 
 可以重写FeignClientsConfiguration中的bean，从而达到自定义配置的目的，比如FeignClientsConfiguration的默认重试次数为Retryer.NEVER_RETRY，即不重试，那么希望做到重写，代码如下：
 
@@ -182,7 +213,7 @@ public class FeignConfig {
 
 
 
-#### 3. Feign 的工作原理
+### 三、Feign 的工作原理
 
 ---
 
@@ -382,7 +413,7 @@ Object executeAndDecode(RequestTemplate template) throws Throwable {
 
 
 
-#### 4. Client 组件
+### 四、Client 组件
 
 ---
 
@@ -499,7 +530,7 @@ class HttpClientFeignLoadBalancedConfiguration {
 
 
 
-#### 5. feign的负载均衡如何实现
+### 五、feign的负载均衡如何实现
 
 ---
 
@@ -602,7 +633,7 @@ private Observable<Server> selectServer() {
 
 
 
-#### 6. 总结
+### 六、总结
 
 ---
 

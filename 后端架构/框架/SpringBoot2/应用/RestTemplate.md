@@ -665,68 +665,33 @@ systemctl start tinyproxy.service
 
 #### 10.3 代理使用者RestTemplate
 
-代理服务器的ip是88.99.10.251，tinyproxy代理服务端口1080。下文代码通过SimpleClientHttpRequestFactory设置访问代理。
+代理服务器的ip是192.168.8.9，tinyproxy代理服务端口8888。下文代码通过SimpleClientHttpRequestFactory设置访问代理。
 
 ```java
+@Test
+void testProxyIp() {
+
+  String url = "http://www.httpbin.org/ip";
+
+  SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+  requestFactory.setProxy(
+    new Proxy(
+      Proxy.Type.HTTP,
+      new InetSocketAddress("192.168.8.9", 8888)  //设置代理服务
+    )
+  );
+  restTemplate.setRequestFactory(requestFactory);
+  //发送请求
+  String result = restTemplate.getForObject(url, String.class);
+  Assertions.assertNotNull(result);
+  System.out.println(result);  //打印响应结果
+}
 ```
 
+代理类型可以是HTTP也可以是SOCKS。下图是 "http://www.httpbin.org/ip" 的请求响应结果，返回的是代理服务器的ip，而不是我电脑的ip。说明我们为RestTemplate 设置的代理生效了。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```json
+{
+  "origin": "36.113.37.191"
+}
+```
