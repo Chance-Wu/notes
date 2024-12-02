@@ -61,6 +61,14 @@ select user_id , vip_flag from  user_info where user_id =#{userId};
 
 
 
+### 三、慢查询
+
+---
+
+#### 3.1 是否命中索引
+
+
+
 
 
 
