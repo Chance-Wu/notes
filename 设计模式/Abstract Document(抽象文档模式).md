@@ -334,13 +334,21 @@ classDiagram
 
 
 
-### 三、适用性
+### 三、适用性及场景
 
 ---
 
-- 需要即时添加新属性
-- 你想要一种灵活的方式来以树状结构组织域
-- 你想要更宽松的耦合系统
+- 内容管理系统 (CMS)：在 CMS 中，您可能拥有各种类型的内容，例如文章、图片、视频等。每种类型的内容可以具有共享属性，例如创建日期、作者和标签，同时还具有特定属性，例如图像的图像尺寸或视频的视频时长。
+- 文件系统：如果您正在设计一个需要管理不同类型文件的文件系统，例如文档、图像、音频文件和目录，抽象文档模式可以帮助提供一种一致的方式来访问文件大小、创建日期等属性，同时允许特定属性，例如图像分辨率或音频持续时间。
+- 电子商务系统：电子商务平台可能有不同类型的产品，例如实体产品、数字下载和订阅。每种类型可以共享名称、价格和描述等通用属性，同时具有独特属性，例如实体产品的运输重量或数字产品的下载链接。
+- 医疗记录系统：在医疗保健领域，患者记录可能包含各种类型的数据，例如人口统计、病史、检查结果和处方。抽象文档模式可以帮助管理共享属性，例如患者 ID 和出生日期，同时容纳特殊属性，例如检查结果或处方药。
+- 配置管理：在处理软件应用程序的配置设置时，可能会出现不同类型的配置元素，每种元素都有自己的一组属性。抽象文档模式可用于管理这些配置元素，同时确保以一致的方式访问和操作其属性。
+- 教育平台：教育系统可能有各种类型的学习材料，例如基于文本的内容、视频、测验和作业。标题、作者和发布日期等常见属性可以共享，而视频时长或作业截止日期等独特属性可以特定于每种类型。
+- 项目管理工具：在项目管理应用程序中，您可以拥有不同类型的任务，如待办事项、里程碑和问题。抽象文档模式可用于处理一般属性，如任务名称和受让人，同时允许特定属性，如里程碑日期或问题优先级。
+- 文档具有多样化、不断发展的属性结构。
+- 动态添加新属性是一个常见的要求。
+- 将数据访问与特定格式分离至关重要。
+- 可维护性和灵活性对于代码库至关重要。
 
 
 
@@ -818,117 +826,383 @@ log.info("表格渲染结果：{}", spreadsheet.getDisplay(0, 0) + spreadsheet.g
     - 手机
     - xxx
 
-#### 6.2 商品类别
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![这里写图片描述](img/70.png)
+
+#### 6.2 商品接口
+
+```java
+/**
+ * 商品接口
+ * <p>定义了商品对象的基本操作，包括获取属性、设置属性以及获取子商品集合
+ *
+ * @author chance
+ * @date 2024/12/2 10:08
+ * @since 1.0
+ */
+public interface Goods {
+
+    /**
+     * 获取商品的指定属性
+     *
+     * @param key 属性的键
+     * @return 属性的值
+     */
+    Object getProperty(String key);
+
+    /**
+     * 在商品中添加或更新一个属性
+     *
+     * @param key   属性的键
+     * @param value 属性的值
+     */
+    void putProperties(String key, Object value);
+
+    /**
+     * 获取指定类型的子商品集合
+     * 通过提供一个键和一个构造函数，将子商品数据转换为指定类型对象的集合
+     *
+     * @param <T>         子商品集合的类型
+     * @param key         子商品集合的键
+     * @param constructor 将子商品数据转换为指定类型对象的构造函数
+     * @return 子商品集合的流
+     */
+    <T> Stream<T> children(String key, Function<Map<String, Object>, T> constructor);
+}
+```
+
+#### 6.3 抽象商品类
+
+```java
+/**
+ * 抽象商品类
+ *
+ * @author chance
+ * @date 2024/12/2 10:18
+ * @since 1.0
+ */
+public class AbstractGoods implements Goods {
+
+    /**
+     * 存储商品属性的映射表
+     */
+    private final Map<String, Object> properties;
+
+    /**
+     * 构造函数，初始化商品属性
+     *
+     * @param properties 商品属性映射表，不能为空
+     * @throws NullPointerException 如果提供的属性为null，则抛出空指针异常
+     */
+    public AbstractGoods(Map<String, Object> properties) {
+        Objects.requireNonNull(properties, "属性不能为空");
+        this.properties = properties;
+    }
+
+    /**
+     * 获取指定键的属性值
+     *
+     * @param key 属性键
+     * @return 对应键的属性值，如果键不存在则返回null
+     */
+    @Override
+    public Object getProperty(String key) {
+        return this.properties.get(key);
+    }
+
+    /**
+     * 向属性映射表中添加或更新键值对
+     *
+     * @param key   属性键
+     * @param value 属性值
+     */
+    @Override
+    public void putProperties(String key, Object value) {
+        this.properties.put(key, value);
+    }
+
+    /**
+     * 获取指定键的子元素流
+     *
+     * @param key         子元素的键
+     * @param constructor 将子元素映射为T类型的函数
+     * @param <T>         子元素转换后的类型
+     * @return 子元素流，如果键不存在或对应的值为空，则返回空流
+     */
+    @Override
+    public <T> Stream<T> children(String key, Function<Map<String, Object>, T> constructor) {
+        Optional<List<Map<String, Object>>> any = Stream.of(getProperty(key))
+                .filter(Objects::nonNull)// 过滤掉值为null的元素
+                .map(el -> (List<Map<String, Object>>) el)// 将过滤后的元素转换为 List<Map<String, Object>> 类型
+                .findAny();// 查找任意元素
+        // 如果找到元素，将其转换为流并应用 constructor 函数；如果没有找到元素，返回空流
+        return any.isPresent() ? any.get().stream().map(constructor) : Stream.empty();
+    }
+
+    @Override
+    public String toString() {
+        return JSON.toJSONString(this.properties);
+    }
+}
+```
+
+```mermaid
+flowchart TD
+    A[开始] --> B[获取属性值]
+    B --> C{属性值是否为null}
+    C -->|Yes| D[返回空流]
+    C -->|No| E[转换为List<Map<String, Object>>]
+    E --> F{是否找到元素}
+    F -->|Yes| G[转换为流并应用构造函数]
+    F -->|No| H[返回空流]
+    G --> I[结束]
+    H --> I
+```
+
+#### 6.4 重量接口
+
+```java
+/**
+ * 包含重量的接口
+ * <p>该接口扩展了{@link Goods}接口，为商品添加了重量的属性和获取方法
+ * 主要用于那些需要明确重量信息的商品
+ *
+ * @author chance
+ * @date 2024/12/2 10:36
+ * @since 1.0
+ */
+public interface HasWeight extends Goods {
+
+    /**
+     * 定义重量属性的键
+     */
+    String WEIGHT_PROPERTIES = "weight";
+
+    /**
+     * 获取商品的重量
+     * 该方法使用了Optional来包装返回值，以优雅地处理可能的空值情况
+     * 如果商品没有设置重量属性，则返回Optional.empty()
+     *
+     * @return Optional<Number> 可能包含重量值的Optional对象，如果未设置重量则为Optional.empty()
+     */
+    default Optional<Number> getWeight() {
+        return Optional.ofNullable((Number) getProperty(WEIGHT_PROPERTIES));
+    }
+}
+```
+
+#### 6.5 类型接口
+
+```java
+/**
+ * 包含类型的接口
+ * <p>该接口继承自{@link Goods}接口，并添加了获取类型信息的方法
+ * 主要用于需要类型信息的文档或对象
+ *
+ * @author chance
+ * @date 2024/12/2 10:39
+ * @since 1.0
+ */
+public interface HasType extends Goods {
+
+    /**
+     * 定义类型属性的键
+     */
+    String TYPE_PROPERTIES = "type";
+
+    /**
+     * 获取类型的默认实现方法
+     * 通过getProperty方法获取类型属性，并使用Optional进行封装，以避免空指针异常
+     *
+     * @return Optional<String> 包含类型的Optional对象，可能为空
+     */
+    default Optional<String> getType() {
+        return Optional.ofNullable((String) getProperty(TYPE_PROPERTIES));
+    }
+}
+```
+
+#### 6.6 价格接口
+
+```java
+/**
+ * 包含价格的接口
+ * <p>该接口继承自{@link Goods}接口，并添加了获取价格的通用方法
+ * 主要用于在抽象文档设计模式中，为可能具有价格属性的文档提供统一的操作接口
+ *
+ * @author chance
+ * @date 2024/12/2 10:46
+ * @since 1.0
+ */
+public interface HasPrice extends Goods {
+
+    String PRICE_PROPERTIES = "price";
+
+    default Optional<Number> getPrice() {
+        return Optional.ofNullable((Number) getProperty(PRICE_PROPERTIES));
+    }
+}
+```
+
+#### 6.7 类别接口
+
+```java
+/**
+ * 包含类别的接口
+ * <p>该接口继承自{@link Goods}接口，并添加了获取商品类别信息的方法
+ * 主要用于获取商品的类别，以确保在商品文档中可以包含类别信息
+ *
+ * @author chance
+ * @date 2024/12/2 10:49
+ * @since 1.0
+ */
+public interface HasCategory extends Goods {
+    /**
+     * 定义类别属性名称
+     */
+    String CATEGORY_PROPERTIES = "category";
+
+    /**
+     * 获取商品类别信息的默认方法
+     * <p>通过调用此方法，可以获取到商品的类别信息流
+     *
+     * @return 商品类别信息流
+     */
+    default Stream<Category> getCategory() {
+        return children(CATEGORY_PROPERTIES, Category::new);
+    }
+}
+```
+
+#### 6.8 品牌接口
+
+```java
+/**
+ * 包含品牌的接口
+ * <p>该接口继承自{@link Goods}接口，并添加了获取品牌信息的方法
+ * 主要用于在抽象文档设计模式中处理与品牌相关的属性
+ *
+ * @author chance
+ * @date 2024/12/2 10:55
+ * @since 1.0
+ */
+public interface HasBrand extends Goods {
+
+    /**
+     * 定义品牌属性的键
+     */
+    String BRAND_PROPERTIES = "brand";
+
+    /**
+     * 获取品牌信息的方法
+     * 该方法利用Optional类优雅地处理可能为null的品牌属性值
+     * 避免了直接返回null可能引起的NullPointerException
+     *
+     * @return 返回一个Optional包装的品牌名称字符串，如果品牌属性为null，则返回一个空的Optional对象
+     */
+    default Optional<String> getBrand() {
+        return Optional.ofNullable((String) getProperty(BRAND_PROPERTIES));
+    }
+}
+```
+
+#### 6.9 数码产品
+
+```java
+/**
+ * 数码产品
+ *
+ * @author chance
+ * @date 2024/12/2 13:01
+ * @since 1.0
+ */
+public class Digital extends AbstractGoods implements HasType, HasBrand, HasPrice, HasWeight {
+
+    /**
+     * 构造函数，初始化商品属性
+     *
+     * @param properties 商品属性映射表，不能为空
+     * @throws NullPointerException 如果提供的属性为null，则抛出空指针异常
+     */
+    public Digital(Map<String, Object> properties) {
+        super(properties);
+    }
+}
+```
+
+#### 6.10 商品类别
+
+```java
+/**
+ * 商品类别
+ * <p>继承自{@link AbstractGoods}抽象类，并实现了HasType, HasBrand, HasPrice, HasWeight接口
+ * 该类用于表示具有类型、品牌、价格和重量属性的商品类别
+ *
+ * @author chance
+ * @date 2024/12/2 09:40
+ * @since 1.0
+ */
+public class Category extends AbstractGoods implements HasType, HasBrand, HasPrice, HasWeight {
+
+    /**
+     * 构造方法，接收一个属性映射，并调用父类构造方法初始化
+     *
+     * @param properties 包含商品类别属性的映射，如类型、品牌、价格和重量等
+     */
+    protected Category(Map<String, Object> properties) {
+        super(properties);
+    }
+}
+```
+
+#### 6.11 测试
+
+```java
+//创建电视属性
+Map<String, Object> televisionProperties = new HashMap<>();
+televisionProperties.put(HasType.TYPE_PROPERTIES, "电视");
+televisionProperties.put(HasPrice.PRICE_PROPERTIES, 2000);
+televisionProperties.put(HasBrand.BRAND_PROPERTIES, "创维");
+televisionProperties.put(HasWeight.WEIGHT_PROPERTIES, 50);
+
+//创建手机属性
+Map<String, Object> phoneProperties = new HashMap<>();
+phoneProperties.put(HasType.TYPE_PROPERTIES, "手机");
+phoneProperties.put(HasPrice.PRICE_PROPERTIES, 1900);
+phoneProperties.put(HasBrand.BRAND_PROPERTIES, "小米");
+phoneProperties.put(HasWeight.WEIGHT_PROPERTIES, 0.5);
+
+//创建平板属性
+Map<String, Object> padProperties = new HashMap<>();
+padProperties.put(HasType.TYPE_PROPERTIES, "平板");
+padProperties.put(HasPrice.PRICE_PROPERTIES, 5000);
+padProperties.put(HasBrand.BRAND_PROPERTIES, "苹果");
+padProperties.put(HasWeight.WEIGHT_PROPERTIES, 0.5);
+
+//创建数码产品属性
+Map<String, Object> digitalProperties = new HashMap<>();
+digitalProperties.put(HasCategory.CATEGORY_PROPERTIES, Arrays.asList(televisionProperties, phoneProperties, padProperties));
+Digital digital = new Digital(digitalProperties);
+
+log.info(digital.toString());
+
+// 输出:
+// {"category":[{"price":2000,"weight":50,"type":"电视","brand":"创维"},{"price":1900,"weight":0.5,"type":"手机","brand":"小米"},{"price":5000,"weight":0.5,"type":"平板","brand":"苹果"}]}
+```
+
+
+
+### 七、优点和权衡
+
+---
+
+#### 7.1 好处
+
+- 灵活性：适应不同的文档结构和属性。
+- 可扩展性：动态添加新属性而不破坏现有代码。
+- 可维护性：由于关注点分离，促进了代码的干净和适应性。
+- 可重用性：类型化视图支持代码重用，以访问特定的属性类型。
+
+#### 7.2 权衡
+
+- 复杂性：需要定义接口和视图，增加了实现开销。
+- 性能：与直接数据访问相比，可能会引入轻微的性能开销。
