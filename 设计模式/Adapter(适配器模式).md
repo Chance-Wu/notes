@@ -20,7 +20,7 @@
 
 
 
-### 三、类适配器示例
+### 三、类适配器
 
 ---
 
@@ -123,6 +123,63 @@ fileProcessorAdapter.processFile("example.txt");
 ```
 
 
+
+### 四、对象适配器
+
+---
+
+```mermaid
+flowchart TD
+    A[开始] --> B[创建 ThirdPartyPayment 实例]
+    B --> C[创建 PaymentAdapter 实例并传入 ThirdPartyPayment 实例]
+    C --> D[通过 PaymentAdapter 调用 pay 方法]
+    D --> E[结束]
+```
+
+#### 4.1 目标接口
+
+```java
+/**
+ * 目标接口
+ * 定义支付网关的标准接口，用于进行支付操作
+ * 该接口未来可能包含其他与支付相关的操作或规范
+ *
+ * @author chance
+ * @date 2024/12/6 16:43
+ * @since 1.0
+ */
+public interface PaymentGateway {
+
+    /**
+     * 执行支付操作
+     *
+     * @param amount 支付金额，单位为元
+     */
+    void pay(double amount);
+}
+```
+
+#### 4.2 第三方支付类
+
+```java
+/**
+ * 第三方支付类
+ * 该类提供了处理支付的功能，主要用于模拟第三方支付流程
+ * 它允许通过特定的支付方法来执行支付操作，当前支持的支付方法定义在process方法中
+ *
+ * @author chance
+ * @date 2024/12/6 16:44
+ * @since 1.0
+ */
+public class ThirdPartyPayment {
+
+    public void process(double value) {
+        System.out.println("Third-party payment processed: " + value);
+    }
+}
+```
+
+#### 4.3 
 
 
 
