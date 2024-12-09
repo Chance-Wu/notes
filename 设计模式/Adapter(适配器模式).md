@@ -179,71 +179,77 @@ public class ThirdPartyPayment {
 }
 ```
 
-#### 4.3 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#### 4.3 适配器类
+
+```java
+/**
+ * 适配器类，用于将第三方支付接口转换为当前系统的支付网关接口
+ * 此类实现了{@link PaymentGateway}接口，并内部封装了ThirdPartyPayment的逻辑
+ * 适配器模式使得现有的第三方支付接口能够与当前系统兼容，无需修改第三方代码
+ *
+ * @author chance
+ * @date 2024/12/6 16:45
+ * @since 1.0
+ */
+public class PaymentAdapter implements PaymentGateway {
+
+    /**
+     * 第三方支付接口实例
+     */
+    private ThirdPartyPayment thirdPartyPayment;
+
+    /**
+     * 构造函数，初始化第三方支付接口实例
+     *
+     * @param thirdPartyPayment 第三方支付接口实例
+     */
+    public PaymentAdapter(ThirdPartyPayment thirdPartyPayment) {
+        this.thirdPartyPayment = thirdPartyPayment;
+    }
+
+    /**
+     * 实现PaymentGateway接口的pay方法
+     * 调用第三方支付接口的process方法来处理支付请求
+     *
+     * @param amount 支付金额
+     */
+    @Override
+    public void pay(double amount) {
+        thirdPartyPayment.process(amount);
+    }
+}
+```
+
+#### 4.4 客户端代码
+
+```java
+// 创建ThirdPartyPayment实例
+ThirdPartyPayment thirdPartyPayment = new ThirdPartyPayment();
+PaymentGateway gateway = new PaymentAdapter(thirdPartyPayment);
+gateway.pay(200.0);
+```
+
+对象适配器将第三方支付类的 `process()` 方法适配为业务系统需要的 `pay()` 方法。
+
+
+
+### 五、类适配器和对象适配器的区别
+
+---
+
+类适配器和对象适配器各有优缺点。类适配器通过绑定到特定的 Adaptee 类来将 Adaptee 适配到 Target，这意味着它不能适配一个类及其所有子类。这种类型的适配器允许适配器覆盖 Adaptee 的某些行为，因为适配器是 Adaptee 的子类。此外，它只引入一个对象，而无需额外的指针间接访问即可到达 Adaptee。
+
+另一方面，对象适配器允许单个适配器与多个 Adaptee 一起工作，包括 Adaptee 及其所有子类。这种类型的适配器可以同时向所有 Adaptee 添加功能。但是，它使覆盖 Adaptee 的行为更加困难，因为它需要对 Adaptee 进行子类化，并让 Adapter 引用此子类而不是 Adaptee 本身。
+
+
+
+### 六、Java中适配器模式的实际应用
+
+---
+
+- `java.io.InputStreamReader`以及`java.io.OutputStreamWriter`Java IO 库。
+- GUI 组件库允许插件或适配器在不同的 GUI 组件接口之间进行转换。
+- `java.util.Arrays#asList()`
+- `java.util.Collections#list()`
+- `java.util.Collections#enumeration()`
+- `javax.xml.bind.annotation.adapters.XMLAdapter`
