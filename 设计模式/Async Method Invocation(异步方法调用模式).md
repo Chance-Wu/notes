@@ -76,9 +76,29 @@ try {
 - 在异步任务完成后调用回调方法：将回调接口的实例作为参数传递给异步任务。
 
 ```java
+public static void main(String[] args) {
+    performTask(result -> System.out.println("Task completed with result: " + result));
+    System.out.println("Main thread continues...");
+}
+
+public static void performTask(Callback callback) {
+    CompletableFuture.runAsync(() -> {
+        try {
+            // 模拟耗时操作
+            Thread.sleep(1000);
+            callback.onComplete("Success");
+        } catch (InterruptedException e) {
+            callback.onComplete("Failure");
+        }
+    });
+}
+
+interface Callback {
+    void onComplete(String result);
+}
 ```
 
-
+#### 3.3 CompletableFuture模式
 
 
 
