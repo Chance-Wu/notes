@@ -100,71 +100,22 @@ interface Callback {
 
 #### 3.3 CompletableFuture模式
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+CompletableFuture 是 Java 8 引入的类，用于更灵活地管理异步操作，包括链式调用和组合多个异步任务。
+
+```java
+// 创建一个异步任务
+CompletableFuture.supplyAsync(() -> {
+            try {
+                // 模拟耗时操作
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            return "Task completed";
+        })
+        // 当任务完成后，处理任务的结果
+        .thenAccept(result -> System.out.println("Result: " + result));
+
+// 主进程继续执行
+System.out.println("Main thread continues...");
+```

@@ -1,4 +1,4 @@
-### 一、定义
+### 一、意图
 
 ---
 
@@ -6,11 +6,28 @@
 
 
 
-### 二、使用场景
+### 二、详解
 
 ---
 
-当一个类的构造参数个数超过4个，有些是可选的参数，考虑使用构造者模式。
+允许创建不同风格的对象，同时避免构造函数污染。当对象可能有多种风格时很有用。或者当创建对象涉及许多步骤时。
+
+>建造者模式是一种对象创建软件设计模式，旨在为**伸缩构造函数反模式**找到解决方案。
+>
+>```java
+>public Hero(Profession profession,String name,HairType hairType,HairColor hairColor,Armor armor,Weapon weapon){
+>    // Value assignments
+>}
+>```
+>
+>以上构造函数参数的数量很快就会变得难以理解，很难理解它们的排列方式。此外，如果决定在将来添加更多选项，此参数列表可能会继续增长。这被称为伸缩构造函数反模式。
+
+#### 2.1 组成部分
+
+- 产品：最终要创建的复杂对象。
+- 抽象构建者：定义了构建产品各个部分的抽象方法。
+- 具体构建者：实现了抽象构建者的方法，负责构建产品的具体部分。
+- 指导者（可选）：负责使用构建者来构建产品，隐藏了构建的复杂性。
 
 
 
@@ -84,7 +101,7 @@ public class Computer {
 }
 ```
 
->弊端：构建过程中对象的状态容易发生变化，造成错误。因为那个类中的属性时分步设置的，所以就容易出错。
+弊端：构建过程中对象的状态容易发生变化，造成错误。因为那个类中的属性时分步设置的，所以就容易出错。
 
 
 
@@ -190,130 +207,133 @@ Computer computer=new Computer.Builder("因特尔","三星")
 - ConcreateBuilder：Builder的实现类。
 - Director：决定如何构建最终产品的算法，其会包含一个负责组装的方法void Construct(Builder builder)，在这个方法中通过调用builder的方法，就可以设置builder，等设置完成后，就可以通过builder的getProduct()方法获得最终的产品。
 
-##### 5.1 第一步：目标类Computer
+##### 5.1 产品类Computer
+
+定义要创建的复杂对象的属性。
 
 ```java
 public class Computer {
-  private String cpu;
-  private String ram;
 
-  private int usbCount;
-  private String keyboard;
-  private String display;
+    private String cpu;
+    private String memory;
+    private String hardDisk;
+    private String display;
 
-  public Computer(String cpu, String ram) {
-    this.cpu = cpu;
-    this.ram = ram;
-  }
-  public void setUsbCount(int usbCount) {
-    this.usbCount = usbCount;
-  }
-  public void setKeyboard(String keyboard) {
-    this.keyboard = keyboard;
-  }
-  public void setDisplay(String display) {
-    this.display = display;
-  }
-  @Override
-  public String toString() {
-    return "Computer{" +
-      "cpu='" + cpu + '\'' +
-      ", ram='" + ram + '\'' +
-      ", usbCount=" + usbCount +
-      ", keyboard='" + keyboard + '\'' +
-      ", display='" + display + '\'' +
-      '}';
-  }
-}
-```
-
-##### 5.2 第二步：抽象构建者类
-
-```java
-public abstract class ComputerBuilder {
-    public abstract void setUsbCount();
-    public abstract void setKeyboard();
-    public abstract void setDisplay();
-
-    public abstract Computer getComputer();
-}
-```
-
-##### 5.3 实体构建者类
-
-可以根据要构建的产品种类产生多个实体构建者类，这里我们需要构建两种品牌的电脑，苹果电脑和联系电脑，所以生成了两个实体构建者类。
-
-```java
-public class MacComputerBuilder extends ComputerBuilder {
-    private Computer computer;
-    public MacComputerBuilder(String cpu, String ram) {
-        computer = new Computer(cpu, ram);
+    /**
+     * 私有构造函数，防止直接创建对象
+     *
+     * @param builder
+     */
+    private Computer(Builder builder) {
+        this.cpu = builder.cpu;
+        this.memory = builder.memory;
+        this.hardDisk = builder.hardDisk;
+        this.display = builder.display;
     }
+
+    /**
+     * Getter 方法
+     *
+     * @return
+     */
+    public String getCpu() {
+        return cpu;
+    }
+
+    public String getMemory() {
+        return memory;
+    }
+
+    public String getHardDisk() {
+        return hardDisk;
+    }
+
+    public String getDisplay() {
+        return display;
+    }
+
     @Override
-    public void setUsbCount() {
-        computer.setUsbCount(2);
+    public String toString() {
+        return "Computer{" +
+                "cpu='" + cpu + '\'' +
+                ", memory='" + memory + '\'' +
+                ", hardDisk='" + hardDisk + '\'' +
+                ", display='" + display + '\'' +
+                '}';
     }
-    @Override
-    public void setKeyboard() {
-        computer.setKeyboard("苹果键盘");
-    }
-    @Override
-    public void setDisplay() {
-        computer.setDisplay("苹果显示器");
-    }
-    @Override
-    public Computer getComputer() {
-        return computer;
-    }
-}
-```
 
-```java
-public class LenovoComputerBuilder extends ComputerBuilder {
-    private Computer computer;
-    public LenovoComputerBuilder(String cpu, String ram) {
-        computer=new Computer(cpu,ram);
-    }
-    @Override
-    public void setUsbCount() {
-        computer.setUsbCount(4);
-    }
-    @Override
-    public void setKeyboard() {
-        computer.setKeyboard("联想键盘");
-    }
-    @Override
-    public void setDisplay() {
-        computer.setDisplay("联想显示器");
-    }
-    @Override
-    public Computer getComputer() {
-        return computer;
+    /**
+     * 内部静态类作为构建者
+     */
+    public static class Builder {
+        private String cpu;
+        private String memory;
+        private String hardDisk;
+        private String display;
+      
+        public Builder cpu(String cpu) {
+              this.cpu = cpu;
+              return this;
+          }
+
+          public Builder memory(String memory) {
+              this.memory = memory;
+              return this;
+          }
+
+          public Builder hardDisk(String hardDisk) {
+              this.hardDisk = hardDisk;
+              return this;
+          }
+
+          public Builder display(String display) {
+              this.display = display;
+              return this;
+          }
+      
+          public Computer build() {
+                return new Computer(this);
+          }
     }
 }
 ```
 
-6.4 第四步：指导者类
+##### 5.2 构建者类（Builder）
+
+在产品内部创建一个静态内部类作为构建者，该类包含于产品类相同的属性，并提交一系列方法来设置这些属性，每个方法都返回this，以便进行链式调用。
+
+#### 5.3 创建构建方法（build()）
+
+在构建者类中创建一个 build() 方法，该方法负责创建最终的产品对象，并将构建者中的属性值赋给产品对象的属性。
+
+#### 5.4 测试
+
+通过调用构建者的各个方法来设置对象的属性，最后调用 `build()` 方法创建对象。
 
 ```java
-public class ComputerDirector {
-    public void makeComputer(ComputerBuilder builder){
-        builder.setUsbCount();
-        builder.setDisplay();
-        builder.setKeyboard();
-    }
-}
+Computer computer = new Computer.Builder()
+        .cpu("Intel i7")
+        .memory("16GB")
+        .hardDisk("1TB SSD")
+        .display("27 inch")
+        .build();
+System.out.println(computer);
 ```
 
-##### 5.4 使用
 
-首先生成一个director，然后生成一个目标builder，接着使用director组装builder，组装完毕后使用builder创建产品实例。
 
-```java
-ComputerDirector director=new ComputerDirector();//1
-ComputerBuilder builder=new MacComputerBuilder("I5处理器","三星125");//2
-director.makeComputer(builder);//3
-Computer macComputer=builder.getComputer();//4
-```
+### 六、优缺点
 
-可以看出一开始使用了传统builder模式的变种，首先其省略了director这个角色，将构建算法交给了client端，其次将builder写到了要构建的产品类里面，最后采用了链式调用。
+---
+
+#### 6.1 优点
+
+- **清晰的构建过程**：将对象的构建过程分解为一系列步骤，使代码更易于理解和维护。
+- **灵活的对象创建**：可以根据需要选择性地设置对象的属性，创建不同的对象实例。
+- **避免构造函数参数过多**：避免了使用大量的构造函数参数，提高了代码的可读性。
+- **易于扩展**：可以很容易地添加新的构建步骤或修改现有的构建步骤。
+
+#### 6.2 权衡
+
+- 由于该模式需要创建多个新类，因此代码的整体复杂性可能会增加
+- 由于需要创建多个构建器对象，可能会增加内存使用量
