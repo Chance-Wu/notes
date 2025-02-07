@@ -438,40 +438,418 @@ sequenceDiagram
 
 ### 四、创建个人简历页面
 
-```html
+---
+
+#### 4.1 语义化结构
+
+- 使用header/main/footer划分页面大区块
+- 每个模块使用section包裹
+- 合理使用h1-h3标题层级
+
+#### 4.2 样式设计原则
+
+- 移动优先的响应式布局
+- 柔和的阴影和圆角提升视觉效果
+- 使用CSS Grid和Flexbox进行布局
+- 建立统一的间距系统（margin/padding）
+
+#### 4.3 最佳实践
+
+```css
+/* 盒模型统一设置 */
+* { box-sizing: border-box; }
+
+/* 响应式图片处理 */
+img { max-width: 100%; height: auto; }
+
+/* 打印优化 */
+@media print {
+    .skill-tag { background: none; border: 1px solid #000; }
+}
 ```
 
+#### 4.4 示例
 
+```html
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    </meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </meta>
+    <meta name="description" content="简历">
+    </meta>
+    <title>chance的个人简历</title>
+    <link rel="stylesheet" href="../../css/resume_style.css">
+    </link>
+    <script src="../../js/script.js" async defer></script>
+</head>
 
+<body>
+    <header class="header">
+        <img src="../../img/image.jpg" alt="chance的头像" class="avatar">
+        <h1>chance</h1>
+        <p>🎓 本科 | 📮 chancewu@aliyun.com | 📱 13871195843</p>
+        <p>📍 江阴 | 🌐 chance.com</p>
+    </header>
+    <main>
+        <section class="section">
+            <h2>个人简介</h2>
+            <p>全栈开发工程师，6年开发经验，擅长Spring技术栈，熟悉Vue全栈开发，对用户体验和代码质量有极致追求。</p>
+        </section>
 
+        <section class="section">
+            <h2>工作经验</h2>
+            <div class="job-item">
+                <h3>java后端开发工程师 - xxx科技有限公司</h3>
+                <p class="job-date">2019.07 - 至今</p>
+                <ul>
+                    <li>主导开发msp</li>
+                    <li>参与众多核心项目的开发与优化</li>
+                    <li>实施代码规范</li>
+                </ul>
+            </div>
+        </section>
 
+        <section class="section">
+            <h2>教育背景</h2>
+            <h3>电子信息工程 学士</h3>
+            <p>xxx大学 | 2014.09 - 2018.06</p>
+        </section>
 
+        <section class="section">
+            <h2>技能</h2>
+            <div class="skills">
+                <span class="skill-tag">HTML5</span>
+                <span class="skill-tag">CSS3</span>
+                <span class="skill-tag">JavaScript (ES6+)</span>
+                <span class="skill-tag">React</span>
+                <span class="skill-tag">Node.js</span>
+                <span class="skill-tag">Webpack</span>
+                <span class="skill-tag">Git</span>
+            </div>
+        </section>
+    </main>
 
+    <footer class="section" style="text-align: center; margin-top: 30px;">
+        <p>© 2025 chance - 更新于2025年2月</p>
+        <p>
+            <a href="https://github.com/Chance-Wu" target="_blank">GitHub</a>
+        </p>
+    </footer>
+</body>
 
+</html>
+```
 
+```css
+/* 基础样式，盒模型统一设置 */
+* {
+    margin: 0;
+    padding: 0;
+    /* 设置盒模型为border-box，使宽度和高度包含内边距和边框。 */
+    box-sizing: border-box;
+}
 
+/* 响应式图片处理 */
+img {
+    max-width: 18%;
+    height: auto;
+}
 
+/* 打印优化 */
+@media print {
+    .skill-tag {
+        background: none;
+        border: 1px solid #000;
+    }
+}
 
+/* 头部样式 */
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
 
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
 
+.avatar {
+    border-radius: 50%;
+    margin-bottom: 10px;
+    border: 3px solid #3498db;
+}
 
+/* 主要内容区块 */
+.section {
+    background: white;
+    padding: 25px;
+    margin-bottom: 25px;
+    border-radius: 8px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
 
+.section h2 {
+    color: #3498db;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
 
+/* 工作经验条目 */
+.job-item {
+    margin-bottom: 25px;
+}
 
+.job-item h3 {
+    color: #2c3e50;
+}
 
+.job-date {
+    color: #7f8c8d;
+    font-size: 0.9em;
+}
 
+/* 技能标签 */
+.skills {
+    display: grid;
+    /* grid-template-columns: repeat(auto-fit, minmax(120px, max-content)); */
+    /* grid-template-columns: 160px 160px 160px 160px; */
+    /* grid-template-columns: 1fr 1fr 1fr 1fr; */
+    /* grid-template-columns: repeat(4, 1fr); */
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 16px 16px;
+    /* column-gap: 8px; */
+    /* row-gap: 16px; */
+}
 
+.skill-tag {
+    background: #3498db;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 25px;
+    text-align: center;
+    font-size: 0.8em;
+    transition: transform 0.5s ease;
+}
 
+.skill-tag:hover {
+    /* transform: scale(1.2); */
+    transform: translateY(-2px);
+}
 
+/* 响应式设计 */
+@media screen and (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
 
+    .section {
+        padding: 15px;
+    }
+}
 
+/* @media (hover:hover) {
+    .section:hover {
+        color: #ff0000;
+        transition-duration: 0.3s;
+    }
+} */
 
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #2c3e50;
+        color: #ecf0f1;
+    }
 
+    .header {
+        background: #34495e;
+    }
 
+    .section {
+        background: #34495e;
+    }
+}
+```
 
+#### 4.5 扩展建议
 
+- 添加更多交互效果：
 
+  ```css
+  .skill-tag {
+      transition: transform 0.3s ease;
+  }
+  .skill-tag:hover {
+      transform: translateY(-2px);
+  }
 
+- 实现暗黑模式
 
+  ```css
+  @media (prefers-color-scheme: dark) {
+      body {
+          background: #2c3e50;
+          color: #ecf0f1;
+      }
+  
+      .header {
+          background: #34495e;
+      }
+  
+      .section {
+          background: #34495e;
+      }
+  }
 
+#### 4.6 常见问题处理
+
+1. 布局错位调试：
+
+   - 使用浏览器开发者工具检查元素盒模型
+   - 临时添加边框辅助调试：`border: 1px solid red;`
+
+2. 移动端适配：
+
+   ```css
+   /* 防止手机端字体过小 */
+   @media (max-width: 480px) {
+       html { font-size: 14px; }
+   }
+   ```
+
+#### 4.7 后续优化
+
+1. 添加PDF导出功能
+
+   1. **引入库**：在 `<head>` 中添加了 html2pdf.js 的 CDN 链接，确保页面加载时能使用该库。
+
+   2. **按钮**：在 header 部分添加了一个按钮，点击后调用 `downloadPDF()` 函数。
+
+   3. **导出函数**：函数中利用 html2pdf.js 将整个页面（即 `document.body`）转换成 PDF 并下载。你可以根据需要调整导出的区域和参数。
+
+   4. 若页面内容较长，可利用 html2pdf.js 提供的分页控制选项。你可以在配置中增加 `pagebreak` 选项，避免在不合适的位置自动分页。例如：
+
+      ```js
+      const opt = {
+          margin:       0.5,
+          filename:     'chance_resume.pdf',
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true },
+          jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
+          pagebreak: {
+              mode: ['avoid-all', 'css', 'legacy']  // 尝试调整此选项，避免在中间拆分内容
+          }
+      };
+      html2pdf().set(opt).from(element).save();
+
+2. 集成在线表单提交
+
+3. 连接GitHub API动态显示项目
+
+4. 增加多语言支持
+
+   1. 引入国际化库：在 `<head>` 部分通过 CDN 引入了 [i18next](https://www.i18next.com/) 及其浏览器语言检测插件，这两个库可以帮助你自动检测浏览器语言并提供国际化支持。
+   2. 设置翻译资源：在 i18next 的初始化配置中，我们为中文（zh）和英文（en）分别定义了对应的翻译内容。每个需要国际化的元素在 HTML 中使用 `data-i18n` 属性，并设置一个对应的键值（例如 `"profileDesc"`）。
+   3. 更新页面文本：初始化完成后调用 `updateContent()` 函数，该函数遍历所有带有 `data-i18n` 属性的元素，并使用 `i18next.t(key)` 方法更新文本内容。
+   4. 语言切换功能：页面上提供了两个按钮，分别调用 `changeLanguage('zh')` 与 `changeLanguage('en')`，切换当前语言后重新调用 `updateContent()` 更新页面显示。
+   5. 与 PDF 导出共存
+      - PDF 导出部分依然调用 html2pdf.js 库。这里建议将导出的区域限定为主要内容（例如通过给 `<main>` 元素设置 id="resume"），这样可以避免导出语言切换按钮等干扰部分。
+
+5. 使用CSS变量统一主题色
+
+   1. 定义全局CSS变量。在你的主 CSS 文件（例如 `resume_style.css`）中，可以在 `:root` 选择器下定义全局变量。例如：
+
+      ```css
+      :root {
+        /* 定义主题色变量 */
+        --primary-color: #3498db;   /* 主题蓝色 */
+        --secondary-color: #2ecc71; /* 辅助绿色 */
+        --background-color: #f9f9f9;/* 背景色 */
+        --text-color: #333;         /* 正文字体颜色 */
+        --header-bg-color: #2980b9; /* 页头背景色 */
+      }
+      
+      ```
+
+   2. 在CSS中使用变量。定义好变量后，你可以在各个样式规则中使用这些变量。例如：
+
+      ```css
+      body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      
+      .header {
+        background-color: var(--header-bg-color);
+        color: #fff;
+        padding: 20px;
+        text-align: center;
+      }
+      
+      .header h1 {
+        margin: 0;
+      }
+      
+      .language-selector button,
+      #download-pdf {
+        background-color: var(--primary-color);
+        border: none;
+        color: #fff;
+        padding: 8px 16px;
+        margin: 5px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+      }
+      
+      .language-selector button:hover,
+      #download-pdf:hover {
+        background-color: var(--secondary-color);
+      }
+      
+      /* 示例：表单样式 */
+      #contactForm {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border: 1px solid var(--primary-color);
+        border-radius: 8px;
+      }
+      
+      #contactForm label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      
+      #contactForm input,
+      #contactForm textarea {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid var(--primary-color);
+        border-radius: 4px;
+      }
+      
+      ```
+
+   3. 在HTML中引用CSS
+
+6. 集成第三方组件库（如Font Awesome图标）
