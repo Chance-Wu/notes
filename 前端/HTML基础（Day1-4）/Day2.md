@@ -686,7 +686,159 @@ input[type="submit"] {
 
 2. IndexedDB
 
+   ```html
+   <!DOCTYPE html>
+   <html lang="zh-CN">
+   
+   <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <meta name="description" content="本地存储方案">
+       <title>本地存储方案</title>
+   </head>
+   
+   <body>
+   
+       <h1>IndexedDB 示例页面</h1>
+   
+       <button onclick="addData('张三', 'zhangsan@example.com')">添加数据</button>
+       <button onclick="getAllData()">获取所有数据</button>
+       <ul id="results"></ul>
+   
+       <script>
+           // // web storage
+           // // 存储数据
+           // localStorage.setItem('user', JSON.stringify({ name: 'John' }));
+   
+           // // 读取数据
+           // const user = JSON.parse(localStorage.getItem('user'));
+   
+           // console.log(user);
+           // // 删除数据
+           // localStorage.removeItem('user');
+   
+           // indexeddb
+           let db;
+           const request = window.indexedDB.open("MyTestDatabase", 1);
+   
+           // 如果需要更新数据库结构，增加版本号并在此处理 onupgradeneeded 事件
+           request.onupgradeneeded = function (event) {
+               db = event.target.result;
+               if (!db.objectStoreNames.contains('customers')) {
+                   // 创建一个对象存储空间
+                   let objectStore = db.createObjectStore("customers", { keyPath: "id", autoIncrement: true });
+                   // 定义索引
+                   objectStore.createIndex("name", "name", { unique: false });
+                   objectStore.createIndex("email", "email", { unique: true });
+               }
+           };
+   
+           request.onsuccess = function (event) {
+               db = event.target.result;
+               console.log("数据库打开成功");
+           };
+   
+           request.onerror = function (event) {
+               console.error("数据库打开失败");
+           };
+   
+           // 添加数据到数据库
+           function addData(name, email) {
+               let transaction = db.transaction(["customers"], "readwrite");
+               let objectStore = transaction.objectStore("customers");
+               let request = objectStore.add({ name: name, email: email });
+   
+               request.onsuccess = function (event) {
+                   console.log("数据添加成功", event);
+               };
+   
+               transaction.oncomplete = function (event) {
+                   console.log("事务完成");
+               };
+   
+               transaction.onerror = function (event) {
+                   console.error("事务失败");
+               };
+           }
+   
+           // 获取所有数据
+           function getAllData() {
+               let transaction = db.transaction(["customers"], "readonly");
+               let objectStore = transaction.objectStore("customers");
+               let request = objectStore.getAll();
+   
+               request.onsuccess = function (event) {
+                   const resultsList = document.getElementById('results');
+                   resultsList.innerHTML = ''; // 清空列表
+                   request.result.forEach(function (item) {
+                       let li = document.createElement('li');
+                       li.textContent = `ID: ${item.id}, Name: ${item.name}, Email: ${item.email}`;
+                       resultsList.appendChild(li);
+                   });
+               };
+           }
+       </script>
+   </body>
+   
+   </html>
+   ```
 
+> 存储方案对比
+>
+> | 类型           | 容量  | 数据类型   | 同步性 |
+> | :------------- | :---- | :--------- | :----- |
+> | Cookie         | 4KB   | 字符串     | 同步   |
+> | localStorage   | 5MB   | 字符串     | 同步   |
+> | sessionStorage | 5MB   | 字符串     | 同步   |
+> | IndexedDB      | 50MB+ | 结构化数据 | 异步   |
+
+#### 3.6 设备API集成
+
+1. 地理位置
+
+   ```javascript
+   navigator.geolocation.getCurrentPosition(
+     (position) => {
+       console.log(`纬度: ${position.coords.latitude}`);
+       console.log(`经度: ${position.coords.longitude}`);
+     },
+     (error) => console.error(error)
+   );
+   ```
+
+2. 陀螺仪/加速计
+
+   ```javascript
+   window.addEventListener('deviceorientation', (event) => {
+     console.log(`Alpha: ${event.alpha}`); // Z轴旋转
+     console.log(`Beta: ${event.beta}`);   // X轴旋转
+     console.log(`Gamma: ${event.gamma}`); // Y轴旋转
+   });
+   ```
+
+#### 3.7 通信协议增强
+
+1. WebSocket
+
+   是一种在客户端与[服务器](https://developer.mozilla.org/zh-CN/docs/Glossary/Server)之间保持 [TCP](https://developer.mozilla.org/zh-CN/docs/Glossary/TCP) 长连接的[协议](https://developer.mozilla.org/zh-CN/docs/Glossary/Protocol)，这样它们就可以随时进行信息交换。
+
+   虽然任何客户端或服务器上的应用都可以使用 WebSocket，但原则上还是指[浏览器](https://developer.mozilla.org/zh-CN/docs/Glossary/Browser)与服务器之间使用。通过 WebSocket，服务器无需客户端预先请求就可以直接向客户端发送数据，从而能动态地更新数据内容。
+
+   ```javascript
+   const socket = new WebSocket('wss://example.com/ws');
+   socket.onmessage = (event) => {
+     console.log('收到消息:', event.data);
+   };
+   socket.send('Hello Server!');
+
+2. Server-Sent Events（SSE）
+
+   ```javascript
+   const eventSource = new EventSource('/updates');
+   eventSource.onmessage = (e) => {
+     console.log('实时更新:', e.data);
+   };
+   ```
 
 
 
