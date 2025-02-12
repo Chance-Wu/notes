@@ -840,85 +840,103 @@ input[type="submit"] {
    };
    ```
 
+#### 3.8 性能优化API
 
+1. Web Workers
 
+   ```javascript
+   // main.js
+   const worker = new Worker('worker.js');
+   worker.postMessage({data: 1000});
+   worker.onmessage = (e) => console.log(e.data);
+   
+   // worker.js
+   self.onmessage = (e) => {
+     const result = heavyCalculation(e.data);
+     self.postMessage(result);
+   };
+   ```
 
+2. requestAnimationFrame
 
+   ```javascript
+   function animate() {
+     // 更新动画帧
+     requestAnimationFrame(animate);
+   }
+   animate();
+   ```
 
+#### 3.9 安全增强机制
 
+1. Content Security Policy (CSP)
 
+   HTTP 响应标头 **`Content-Security-Policy`** 允许站点管理者控制用户代理能够为指定的页面加载哪些资源。除了少数例外情况，设置的政策主要涉及指定源服务器和脚本端点。这将帮助防止[跨站脚本攻击](https://developer.mozilla.org/zh-CN/docs/Glossary/Cross-site_scripting)。
 
+   ```html
+   <meta http-equiv="Content-Security-Policy" 
+         content="default-src 'self'; script-src 'unsafe-inline'">
+   ```
 
+2. CORS控制
 
+   ```javascript
+   // 通过 fetch 发送跨域请求
+   // mode: 'cors' 表示使用 CORS 协议进行跨域请求
+   // credentials: 'include' 表示发送请求时包含用户凭证（cookies）
+   fetch('https://example.com', {
+       mode: 'cors',
+       credentials: 'include'
+   });
+   ```
 
+#### 3.10 移动端适配方案
 
+1. Viewport元标签
 
+   ```html
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+   ```
 
+   设置了视口的属性，确保网页在移动设备上能够正确显示。
 
+   - width=device-width：设置视口宽度等于设备宽度。
+   - initial-scale=1.0：初始缩放比例为1。
+   - maximum-scale=1.0：最大缩放比例为1。
+   - user-scalable=no：禁止用户手动缩放。
 
+2. 触摸事件
 
+   ```javascript
+   element.addEventListener('touchstart', (e) => {
+     const touch = e.touches[0];
+     console.log(`触点X: ${touch.clientX}`);
+   });
+   ```
 
+#### 3.11实践建议
 
+1. 优先使用语义化标签构建页面骨架
 
+2. 利用FormData对象处理复杂表单提交
 
+3. 渐进增强策略：检测功能支持情况
 
+   ```javascript
+   if('geolocation' in navigator) {
+     // 使用定位功能
+   } else {
+     // 降级方案
+   }
+   ```
 
+兼容性处理：
 
+- 使用Modernizr检测特性支持
+- 通过Polyfill实现兼容（如html5shiv）
 
+性能考量：
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+- 避免过度使用Web Storage
+- Canvas渲染注意内存释放
+- Web Workers处理CPU密集型任务
