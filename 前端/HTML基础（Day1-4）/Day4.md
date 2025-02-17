@@ -1,3 +1,7 @@
+- HTML验证与调试
+- SEO基础
+- 综合练习：完整企业官网框架
+
 ### 一、HTML验证与调试
 
 ---
@@ -221,113 +225,238 @@ SEO（Search Engine Optimization——搜索引擎优化）是通过优化网站
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### 三、综合练习：企业官网框架
+
+---
+
+#### 3.1 项目结构
+
+```
+enterprise-website/
+│
+├── index.html
+├── styles.css
+├── script.js
+└── images/
+    ├── logo.png
+    ├── banner.jpg
+    └── team.jpg
+
+```
+
+#### 3.2 HTML结构
+
+在index.html中，我们将创建一个基本的HTML框架，包含所有页面的导航和内容区域。
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业官网</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="images/logo.png" alt="企业标志">
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#home">首页</a></li>
+                <li><a href="#about">关于我们</a></li>
+                <li><a href="#products">产品与服务</a></li>
+                <li><a href="#news">新闻动态</a></li>
+                <li><a href="#contact">联系我们</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="home" class="section">
+            <h1>欢迎来到我们的企业官网</h1>
+            <p>我们致力于提供高质量的产品和服务。</p>
+        </section>
+
+        <section id="about" class="section">
+            <h2>关于我们</h2>
+            <p>我们是一家专注于创新和客户满意度的企业。</p>
+            <img src="images/team.jpg" alt="团队照片">
+        </section>
+
+        <section id="products" class="section">
+            <h2>产品与服务</h2>
+            <div class="products">
+                <div class="product">
+                    <h3>产品1</h3>
+                    <p>详细描述产品1。</p>
+                </div>
+                <div class="product">
+                    <h3>产品2</h3>
+                    <p>详细描述产品2。</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="news" class="section">
+            <h2>新闻动态</h2>
+            <article>
+                <h3>新闻标题1</h3>
+                <p>新闻内容1...</p>
+            </article>
+            <article>
+                <h3>新闻标题2</h3>
+                <p>新闻内容2...</p>
+            </article>
+        </section>
+
+        <section id="contact" class="section">
+            <h2>联系我们</h2>
+            <form id="contact-form">
+                <label for="name">姓名：</label>
+                <input type="text" id="name" name="name" required>
+                <label for="email">邮箱：</label>
+                <input type="email" id="email" name="email" required>
+                <label for="message">留言：</label>
+                <textarea id="message" name="message"></textarea>
+                <button type="submit">提交</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 企业官网. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+```
+
+#### 3.3 CSS样式
+
+在style.css中，我们将为网站添加基本的样式，确保布局美观且响应式。
+
+```css
+/* 基础样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+    color: #fff;
+    padding: 1rem;
+}
+
+header .logo img {
+    width: 100px
+}
+
+header nav ul {
+    list-style: none;
+    display: flex;
+}
+
+hedar nav ul li {
+    margin-left: 1rem;
+}
+
+header nav ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+header nav ul li a:hover {
+    text-decoration: underline;
+}
+.section {
+    padding: 2rem;
+    margin: 1rem 0;
+    background-color: #fff;
+    border-radius: 25px;
+}
+
+.section h1, .section h2 {
+    margin-bottom: 1rem;
+}
+
+.section img {
+    max-width: 100%;
+    height: auto;
+    margin-top: 1rem;
+}
+
+
+.products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.product {
+    flex: 1 1 200px;
+}
+
+footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1rem;
+}
+
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    header nav ul {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    header nav ul li {
+        margin: 0.5rem 0;
+    }
+
+}
+```
+
+#### 3.4 JavaScript交互
+
+在script.js中，我们将添加一些简单的JavaScript代码，以实现表单验证和动态内容加载等功能。
+
+```javascript
+document.addEventListener('DOMContentLoaded', () => {
+    const contactForm = document.getElementById('contact-form');
+
+    contactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const message = document.getElementById('message').value;
+
+        if (!name || !email || !message) {
+            alert('请填写所有必填项！');
+            return;
+        }
+
+        alert(`感谢您的留言，${name}！我们将尽快与您联系。`);
+        contactForm.reset();
+    });
+});
+```
