@@ -407,67 +407,50 @@ transform: rotateY(45deg) translateZ(100px);
 
 #### 3.4 现代感旋转边框（适合科技风格）
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```html
+<div class="modern-loader"></div>
+
+<style>
+.modern-loader {
+  width: 60px;
+  height: 60px;
+  position: relative;
+}
+
+.modern-loader::before,
+.modern-loader::after {
+  content: '';
+  position: absolute;
+  border: 4px solid transparent;
+  border-radius: 50%;
+}
+
+.modern-loader::before {
+  width: 100%;
+  height: 100%;
+  border-top-color: #9b59b6;
+  animation: modern-spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.modern-loader::after {
+  width: 70%;
+  height: 70%;
+  top: 15%;
+  left: 15%;
+  border-bottom-color: #34495e;
+  animation: modern-spin 0.8s cubic-bezier(0.5, 0, 0.5, 1) infinite reverse;
+}
+
+@keyframes modern-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+```
+
+>1. 所有动画都自带无限循环（infinite）
+>2. 修改颜色：查找代码中的颜色值（如#3498db）进行替换
+>3. 调整大小：修改width/height数值（保持宽高一致）
+>4. 速度控制：修改animation的持续时间（如1s→2s会变慢）
+>5. 居中显示：给父容器添加 display: flex; justify-content: center; align-items: center;
