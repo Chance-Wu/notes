@@ -121,9 +121,34 @@ Sass文件需要编译成CSS才能在浏览器中使用。
 9. **条件和循环**：Sass提供条件语句和循环语句，增加逻辑控制能力：
 
    - 条件语句：
+
+     ```css
+     $type: ocean;
+     @if $type == ocean {
+       color: blue;
+     } @else if $type == matador {
+       color: red;
+     } @else {
+       color: black;
+     }
+
    - 循环语句：
 
-10. 
+     ```css
+     @for $i from 1 through 3 {
+       .item-#{$i} {
+         width: 2em * $i;
+       }
+     }
+     ```
+
+     编译后生成 .item-1、.item-2、.item-3，宽度分别为2em、4em、6em。
+
+
+
+### 二、电商网站首页
+
+---
 
 
 
