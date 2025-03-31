@@ -90,119 +90,142 @@ console.log(checkAge(25));
 #### 3.1 作用域链
 
 ```javascript
+let globalVar = "全局";
+
+function outer() {
+  let outerVar = "外层";
+  
+  function inner() {
+    let innerVar = "内层";
+    console.log(globalVar + outerVar + innerVar);
+  }
+  inner();
+}
+outer(); // "全局外层内层"
+```
+
+#### 3.2 闭包应用
+
+```javascript
+function createCounter() {
+  let count = 0;
+  return function() {
+    return ++count;
+  };
+}
+
+const counter = createCounter();
+console.log(counter()); // 1
+console.log(counter()); // 2
 ```
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### 四、立即调用函数（IIFE）
+
+---
+
+```javascript
+(function() {
+  const secret = "临时值";
+  console.log("立即执行");
+})();
+
+// 模块化示例
+const calculator = (function() {
+  let memory = 0;
+  
+  return {
+    add: x => memory += x,
+    get: () => memory
+  };
+})();
+
+calculator.add(5);
+console.log(calculator.get()); // 5
+```
+
+
+
+### 五、实战案例：待办事项管理
+
+---
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>待办事项</title>
+    <style>
+        .todo-item { margin: 5px; padding: 8px; border: 1px solid #ddd; }
+        .completed { text-decoration: line-through; opacity: 0.6; }
+    </style>
+</head>
+<body>
+    <input id="todoInput" placeholder="输入任务">
+    <button onclick="addTodo()">添加</button>
+    <div id="todoList"></div>
+
+    <script>
+        // 状态管理模块
+        const todoManager = (() => {
+            let todos = JSON.parse(localStorage.getItem('todos')) || [];
+            
+            function save() {
+                localStorage.setItem('todos', JSON.stringify(todos));
+                render();
+            }
+            
+            function render() {
+                const list = document.getElementById('todoList');
+                list.innerHTML = todos.map((todo, index) => `
+                    <div class="todo-item ${todo.done ? 'completed' : ''}">
+                        <input type="checkbox" 
+                               ${todo.done ? 'checked' : ''} 
+                               onchange="toggleTodo(${index})">
+                        ${todo.text}
+                        <button onclick="deleteTodo(${index})">×</button>
+                    </div>
+                `).join('');
+            }
+            
+            return {
+                add: text => {
+                    todos.push({ text, done: false });
+                    save();
+                },
+                toggle: index => {
+                    todos[index].done = !todos[index].done;
+                    save();
+                },
+                delete: index => {
+                    todos.splice(index, 1);
+                    save();
+                },
+                init: render
+            };
+        })();
+        
+        // 用户操作接口
+        function addTodo() {
+            const input = document.getElementById('todoInput');
+            if(input.value.trim()) {
+                todoManager.add(input.value.trim());
+                input.value = '';
+            }
+        }
+        
+        function toggleTodo(index) {
+            todoManager.toggle(index);
+        }
+        
+        function deleteTodo(index) {
+            todoManager.delete(index);
+        }
+        
+        // 初始化
+        todoManager.init();
+    </script>
+</body>
+</html>
+```
